@@ -40,9 +40,9 @@ Aplikasi mobile pelaporan masalah lingkungan berbasis sosial media, dibangun den
 
 ## 👥 Tim Pengembang
 
-| Nama | NIM | Role |
-|------|-----|------|
-| Nama 1 | 123456 | Project Manager |
+| Nama | NIM | 
+|------|-----|
+| Ignatius Roger Ramopolii | 2802437871 |
 | Nama 2 | 123457 | Frontend Developer |
 | Nama 3 | 123458 | UI/UX Designer |
 
