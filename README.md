@@ -45,8 +45,9 @@ Aplikasi mobile pelaporan masalah lingkungan berbasis sosial media, dibangun den
 | Ignatius Roger Ramopolii | 2802437871 |
 | Marco Alexius | 2802437442 | 
 | Fabian Varel | 2802507606 |
-| Devano Carlo | 2802420750 |  
+| Devano Carlo | 2802420750 |
+| Clement Jonathan Agustian Tanjaya | 2802417913 |
 
 ## 📚 Mata Kuliah
 
-Software Engineering — Semester Genap 2024/2025
+Software Engineering — Semester Genap 2025/2026
