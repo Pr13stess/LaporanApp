@@ -44,6 +44,7 @@ Aplikasi mobile pelaporan masalah lingkungan berbasis sosial media, dibangun den
 |------|-----|
 | Ignatius Roger Ramopolii | 2802437871 |
 | Marco Alexius | 2802437442 | 
+| Fabian Varel | 2802507606 |
 | Nama 3 | 123458 | UI/UX Designer |
 
 ## 📚 Mata Kuliah
