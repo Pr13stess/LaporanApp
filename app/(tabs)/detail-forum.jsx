@@ -1,12 +1,25 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { dummyReports } from '../../data/dummyData';
+import { useEffect, useState } from 'react';
+import { supabase } from '../../lib/supabase';
 
 export default function DetailForumScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
-  const laporan = dummyReports.find((r) => r.id === id);
+  const [laporan, setLaporan] = useState(null);
+
+  useEffect(() => {
+    const fetchDetail = async () => {
+      const { data } = await supabase
+        .from('laporan')
+        .select('*')
+        .eq('id', id)
+        .single();
+      setLaporan(data);
+    };
+    fetchDetail();
+  }, [id]);
 
   if (!laporan) return null;
 
