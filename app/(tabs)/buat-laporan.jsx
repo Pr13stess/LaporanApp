@@ -49,14 +49,16 @@ export default function BuatLaporanScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <View style={styles.avatar} />
         <Text style={styles.headerTitle}>Halo, King!</Text>
-        <TouchableOpacity style={styles.settingBtn}>
+        <TouchableOpacity>
           <Ionicons name="settings-sharp" size={26} color="#FFA500" />
         </TouchableOpacity>
       </View>
 
+      {/* Form */}
       <ScrollView contentContainerStyle={styles.form}>
         <Text style={styles.formTitle}>Laporan Sekitar</Text>
 
@@ -70,7 +72,7 @@ export default function BuatLaporanScreen() {
 
         <View style={styles.inputRow}>
           <TextInput
-            style={[styles.input, { flex: 1, marginBottom: 0 }]}
+            style={[styles.input, { flex: 1, marginBottom: 0, borderWidth: 0 }]}
             placeholder="Tanggal"
             placeholderTextColor="#aaa"
             value={tanggal}
@@ -133,59 +135,55 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 18,
   },
-  settingBtn: {
-    marginLeft: 'auto',
-  },
   form: {
     backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 24,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    padding: 28,
     minHeight: '100%',
   },
   formTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#1565C0',
-    marginBottom: 20,
+    marginBottom: 24,
     textAlign: 'center',
-    borderWidth: 1,
-    borderColor: '#1565C0',
-    borderRadius: 6,
-    padding: 6,
   },
   input: {
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#ccc',
-    borderRadius: 8,
+    borderRadius: 10,
     padding: 12,
-    marginBottom: 12,
+    marginBottom: 14,
     fontSize: 14,
     color: '#333',
+    backgroundColor: '#fff',
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#ccc',
-    borderRadius: 8,
+    borderRadius: 10,
     paddingHorizontal: 12,
-    marginBottom: 12,
+    marginBottom: 14,
+    backgroundColor: '#fff',
   },
   calendarIcon: {
     marginLeft: 8,
   },
   inputMultiline: {
-    height: 100,
+    height: 110,
     textAlignVertical: 'top',
   },
   fotoBox: {
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#ccc',
-    borderRadius: 8,
-    height: 120,
-    marginBottom: 24,
+    borderRadius: 10,
+    height: 110,
+    marginBottom: 28,
     overflow: 'hidden',
+    backgroundColor: '#fff',
   },
   fotoPlaceholderBox: {
     flex: 1,
@@ -209,7 +207,7 @@ const styles = StyleSheet.create({
     padding: 14,
     alignItems: 'center',
     alignSelf: 'flex-end',
-    paddingHorizontal: 32,
+    paddingHorizontal: 36,
   },
   btnKirimText: {
     color: '#fff',
