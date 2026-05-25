@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useRouter } from 'expo-router';
 
 const kuponData = [
   { id: '1', judul: 'Get A Coupon !!', deskripsi: '5 uploads your problem', progress: 80, warna: '#FFA500' },
@@ -9,15 +10,17 @@ const kuponData = [
 ];
 
 export default function KuponScreen() {
+  const router = useRouter();
+  
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.avatar} />
         <Text style={styles.headerTitle}>Halo, King!</Text>
-        <TouchableOpacity onPress={() => router.push('/(tabs)/settings')}>
-          <Ionicons name="settings-sharp" size={26} color="#FFA500" />
-        </TouchableOpacity>
+      <TouchableOpacity onPress={() => router.push('/settings')}>
+        <Ionicons name="settings-sharp" size={26} color="#FFA500" />
+      </TouchableOpacity>
       </View>
 
       {/* Content */}

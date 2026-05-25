@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useRouter } from 'expo-router';
 
 const leaderboardData = [
   { id: '1', nama: 'JOKO WIWIDO', upvote: '1.6k', rank: 1 },
@@ -19,16 +20,16 @@ const podiumColors = {
 export default function LeaderboardScreen() {
   const top3 = leaderboardData.slice(0, 3);
   const rest = leaderboardData.slice(3);
-
+  const router = useRouter();
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.avatar} />
         <Text style={styles.headerTitle}>Halo, King!</Text>
-        <TouchableOpacity>
-          <Ionicons name="settings-sharp" size={26} color="#FFA500" />
-        </TouchableOpacity>
+      <TouchableOpacity onPress={() => router.push('/settings')}>
+        <Ionicons name="settings-sharp" size={26} color="#FFA500" />
+      </TouchableOpacity>
       </View>
 
       {/* Podium Top 3 */}
