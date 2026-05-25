@@ -16,7 +16,7 @@ export default function HomeScreen() {
           <Text style={styles.pingLabel}>Ping Location:</Text>
           <Text style={styles.lokasi}>📍 Jl. Raya Kebon Jeruk No. 37, Jakarta Barat</Text>
         </View>
-        <TouchableOpacity onPress={() => router.push('/(tabs)/settings')}>
+        <TouchableOpacity onPress={() => router.push('/settings')}>
           <Ionicons name="settings-sharp" size={26} color="#FFA500" />
         </TouchableOpacity>
       </View>
