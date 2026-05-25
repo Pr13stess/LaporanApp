@@ -27,10 +27,10 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.avatar} />
-        <Text style={styles.headerTitle}>Halo, King!</Text>
+      <View style={styles.container}>
+        <View style={styles.header}>
+        <Ionicons name="location" size={48} color="#fff" />
+        <Text style={styles.appName}>LaporanApp</Text>
       </View>
 
       <View style={styles.form}>
@@ -93,18 +93,19 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     gap: 10,
   },
-  avatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: '#90CAF9',
-  },
-  headerTitle: {
-    flex: 1,
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 18,
-  },
+header: {
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingTop: 60,
+  paddingBottom: 20,
+  gap: 8,
+},
+appName: {
+  color: '#fff',
+  fontWeight: 'bold',
+  fontSize: 24,
+  letterSpacing: 1,
+},
   form: {
     flex: 1,
     backgroundColor: '#fff',

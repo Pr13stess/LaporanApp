@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export const unstable_settings = {
-  anchor: '(tabs)',
+  anchor: 'login',
 };
 
 export default function RootLayout() {
@@ -29,14 +29,16 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (!ready) return;
-    const inTabs = segments[0] === '(tabs)';
-    if (!session && inTabs) {
-      router.replace('/login');
-    } else if (session && !inTabs) {
-      router.replace('/(tabs)');
-    }
-  }, [session, ready]);
+  if (!ready) return;
+  const inTabs = segments[0] === '(tabs)';
+  const inAuth = segments[0] === 'login' || segments[0] === 'register';
+
+  if (!session && !inAuth) {
+    router.replace('/login');
+  } else if (session && !inTabs) {
+    router.replace('/(tabs)');
+  }
+}, [session, ready]);
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
