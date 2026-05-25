@@ -54,6 +54,7 @@ export default function TabLayout() {
       />
       <Tabs.Screen name="buat-laporan" options={{ href: null }} />
       <Tabs.Screen name="detail-forum" options={{ href: null }} />
+      <Tabs.Screen name="settings" options={{ href: null }} />
     </Tabs>
   );
 }

@@ -30,7 +30,7 @@ export default function ForumScreen() {
       <View style={styles.header}>
         <View style={styles.avatar} />
         <Text style={styles.headerTitle}>Halo, King!</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/(tabs)/settings')}>
           <Ionicons name="settings-sharp" size={26} color="#FFA500" />
         </TouchableOpacity>
       </View>
