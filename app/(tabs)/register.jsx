@@ -1,0 +1,178 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { supabase } from '../lib/supabase';
+
+export default function RegisterScreen() {
+  const router = useRouter();
+  const [nama, setNama] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleRegister = async () => {
+    if (!nama || !email || !password) {
+      Alert.alert('Gagal', 'Semua field harus diisi!');
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { nama } },
+    });
+    setLoading(false);
+    if (error) {
+      Alert.alert('Gagal Daftar', error.message);
+    } else {
+      Alert.alert('Berhasil!', 'Akun berhasil dibuat! Silakan login.', [
+        { text: 'OK', onPress: () => router.replace('/login') }
+      ]);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <View style={styles.avatar} />
+        <Text style={styles.headerTitle}>Halo, King!</Text>
+      </View>
+
+      <View style={styles.form}>
+        <Text style={styles.formTitle}>Daftar</Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Nama Lengkap"
+          placeholderTextColor="#aaa"
+          value={nama}
+          onChangeText={setNama}
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          placeholderTextColor="#aaa"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+
+        <View style={styles.inputRow}>
+          <TextInput
+            style={[styles.input, { flex: 1, marginBottom: 0, borderWidth: 0 }]}
+            placeholder="Password"
+            placeholderTextColor="#aaa"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+          />
+          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+            <Ionicons
+              name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+              size={22}
+              color="#aaa"
+            />
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.btnKirim, loading && { opacity: 0.7 }]}
+          onPress={handleRegister}
+          disabled={loading}
+        >
+          <Text style={styles.btnKirimText}>{loading ? 'Loading...' : 'Daftar'}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => router.push('/login')} style={styles.loginLink}>
+          <Text style={styles.loginText}>Sudah punya akun? <Text style={styles.loginTextBold}>Login</Text></Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#1565C0',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 50,
+    paddingBottom: 12,
+    gap: 10,
+  },
+  avatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#90CAF9',
+  },
+  headerTitle: {
+    flex: 1,
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  form: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    padding: 28,
+  },
+  formTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1565C0',
+    marginBottom: 28,
+    textAlign: 'center',
+  },
+  input: {
+    borderWidth: 1.5,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 14,
+    fontSize: 14,
+    color: '#333',
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    marginBottom: 24,
+  },
+  btnKirim: {
+    backgroundColor: '#FFA500',
+    borderRadius: 20,
+    padding: 14,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  btnKirimText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  loginLink: {
+    alignItems: 'center',
+  },
+  loginText: {
+    color: '#888',
+    fontSize: 14,
+  },
+  loginTextBold: {
+    color: '#1565C0',
+    fontWeight: 'bold',
+  },
+});
