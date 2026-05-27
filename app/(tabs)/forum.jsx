@@ -12,6 +12,7 @@ export default function ForumScreen() {
   const [nama, setNama] = useState('');
   const [foto, setFoto] = useState(null);
   const [likedIds, setLikedIds] = useState(new Set());
+  const [showSort, setShowSort] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -30,10 +31,21 @@ export default function ForumScreen() {
 
   const fetchLaporan = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('laporan')
-      .select('*')
-      .order('created_at', { ascending: false });
+    let query = supabase.from('laporan').select('*');
+
+    if (sortBy === 'terbaru') {
+      query = query.order('created_at', { ascending: false });
+    } else if (sortBy === 'terlama') {
+      query = query.order('created_at', { ascending: true });
+    } else if (sortBy === 'populer') {
+      query = query.order('upvotes', { ascending: false });
+    } else if (sortBy === 'pending') {
+      query = query.eq('status', 'pending').order('created_at', { ascending: false });
+    } else if (sortBy === 'selesai') {
+      query = query.eq('status', 'selesai').order('created_at', { ascending: false });
+    }
+
+    const { data, error } = await query;
     if (!error) setLaporan(data);
     setLoading(false);
   };
@@ -96,11 +108,30 @@ export default function ForumScreen() {
             <Text style={styles.sortLabel}>Sort by :</Text>
             <TouchableOpacity
               style={styles.sortBtn}
-              onPress={() => setSortBy(sortBy === 'terbaru' ? 'terlama' : 'terbaru')}
+              onPress={() => setShowSort(prev => !prev)}
             >
               <Text style={styles.sortBtnText}>{sortBy}</Text>
-              <Ionicons name="chevron-down" size={14} color="#fff" />
+              <Ionicons name={showSort ? "chevron-up" : "chevron-down"} size={14} color="#fff" />
             </TouchableOpacity>
+
+            {showSort && (
+              <View style={styles.dropdown}>
+                {['terbaru', 'terlama', 'populer', 'pending', 'selesai'].map((option) => (
+                  <TouchableOpacity
+                    key={option}
+                    style={[styles.dropdownItem, sortBy === option && styles.dropdownItemActive]}
+                    onPress={() => {
+                      setSortBy(option);
+                      setShowSort(false);
+                    }}
+                  >
+                    <Text style={[styles.dropdownText, sortBy === option && styles.dropdownTextActive]}>
+                      {option}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
           </View>
         </View>
 
@@ -226,10 +257,11 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   topRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 14,
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: 14,
+  zIndex: 999,
   },
   forumTitle: {
     fontSize: 20,
@@ -369,6 +401,33 @@ const styles = StyleSheet.create({
   backgroundColor: '#E3F2FD',
   },
   upvoteTextActive: {
+    color: '#1565C0',
+    fontWeight: 'bold',
+  },
+  dropdown: {
+  position: 'absolute',
+  top: 32,
+  right: 0,
+  backgroundColor: '#fff',
+  borderRadius: 10,
+  elevation: 6,
+  zIndex: 999,
+  minWidth: 120,
+  overflow: 'hidden',
+  },
+  dropdownItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  dropdownItemActive: {
+    backgroundColor: '#E3F2FD',
+  },
+  dropdownText: {
+    fontSize: 13,
+    color: '#333',
+    textTransform: 'capitalize',
+  },
+  dropdownTextActive: {
     color: '#1565C0',
     fontWeight: 'bold',
   },
