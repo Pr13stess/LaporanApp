@@ -3,6 +3,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { supabase } from '../../lib/supabase';
+import { Share } from 'react-native'
 
 export default function ForumScreen() {
   const router = useRouter();
@@ -11,7 +12,8 @@ export default function ForumScreen() {
   const [loading, setLoading] = useState(true);
   const [nama, setNama] = useState('');
   const [foto, setFoto] = useState(null);
-
+  const [likedIds, setLikedIds] = useState(new Set());
+  
   useFocusEffect(
     useCallback(() => {
       fetchUser();
@@ -100,7 +102,7 @@ export default function ForumScreen() {
                   </View>
                   <View style={[styles.statusBadge, {
                     backgroundColor:
-                      item.status === 'pending' ? '#FFA500' :
+                      item.status === 'pending' ? '#D32F2F' :
                       item.status === 'proses' ? '#1565C0' : '#2E7D32'
                   }]}>
                     <Text style={styles.statusText}>{item.status}</Text>
@@ -123,7 +125,7 @@ export default function ForumScreen() {
                   <Image source={{ uri: item.foto }} style={styles.cardFoto} />
                 ) : null}
 
-                {/* Upvote */}
+                {/* Upvote & Share */}
                 <View style={styles.upvoteRow}>
                   <TouchableOpacity
                     style={styles.upvoteBtn}
@@ -132,8 +134,20 @@ export default function ForumScreen() {
                       handleUpvote(item);
                     }}
                   >
-                    <Ionicons name="thumbs-up-outline" size={16} color="#1565C0" />
-                    <Text style={styles.upvoteText}>{item.upvotes || 0} Upvote</Text>
+                    {/* <View style={styles.upvoteDot} /> */}
+                    <Ionicons name="thumbs-up-outline" size={18} color="#555" />
+                    <Text style={styles.upvoteText}>{item.upvotes || 0}</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.shareBtn}
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      Share.share({ message: `${item.judul}\n${item.alamat}` });
+                    }}
+                  >
+                    <Ionicons name="share-social-outline" size={18} color="#555" />
+                    
                   </TouchableOpacity>
                 </View>
               </TouchableOpacity>
@@ -280,20 +294,42 @@ const styles = StyleSheet.create({
   upvoteRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginTop: 4,
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 10,
   },
   upvoteBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#E3F2FD',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    backgroundColor: '#F0F0F0',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 20,
   },
+  // upvoteDot: {
+  //   width: 10,
+  //   height: 10,
+  //   borderRadius: 5,
+  //   backgroundColor: '#4CAF50',
+  // },
   upvoteText: {
-    color: '#1565C0',
-    fontWeight: 'bold',
-    fontSize: 12,
+    color: '#555',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  shareBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#F0F0F0',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  shareBtnText: {
+    color: '#555',
+    fontSize: 13,
+    fontWeight: '600',
   },
 });
