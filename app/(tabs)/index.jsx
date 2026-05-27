@@ -1,18 +1,37 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
+import { useEffect, useState } from 'react';
+import { supabase } from '../../lib/supabase';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const [nama, setNama] = useState('');
+  const [foto, setFoto] = useState(null);
+
+  useEffect(() => {
+  const fetchUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      setNama(user.user_metadata?.nama || 'User');
+      setFoto(user.user_metadata?.foto || null);
+    }
+  };
+  fetchUser();
+}, []);
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.avatar} />
+        {foto ? (
+          <Image source={{ uri: foto }} style={styles.avatar} />
+        ) : (
+          <View style={styles.avatar} />
+        )}
         <View style={styles.headerText}>
-          <Text style={styles.halo}>Halo, King!</Text>
+          <Text style={styles.halo}>Halo, {nama}!</Text>
           <Text style={styles.pingLabel}>Ping Location:</Text>
           <Text style={styles.lokasi}>📍 Jl. Raya Kebon Jeruk No. 37, Jakarta Barat</Text>
         </View>
@@ -115,5 +134,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 14,
+  },
+  avatar: {
+  width: 42,
+  height: 42,
+  borderRadius: 21,
+  backgroundColor: '#90CAF9',
+  overflow: 'hidden',
   },
 });
