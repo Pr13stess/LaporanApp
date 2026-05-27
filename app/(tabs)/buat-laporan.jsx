@@ -38,28 +38,56 @@ export default function BuatLaporanScreen() {
     }
   };
 
-  const kirimLaporan = async () => {
-    if (!judul || !detail) {
-      Alert.alert('Gagal', 'Semua field harus diisi!');
+const kirimLaporan = async () => {
+  if (!judul || !detail) {
+    Alert.alert('Gagal', 'Semua field harus diisi!');
+    return;
+  }
+
+  let fotoUrl = null;
+
+  if (foto) {
+    const ext = foto.split('.').pop();
+    const fileName = `${Date.now()}.${ext}`;
+    const formData = new FormData();
+    formData.append('file', {
+      uri: foto,
+      name: fileName,
+      type: `image/${ext}`,
+    });
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('laporan-foto')
+      .upload(fileName, formData);
+
+    if (uploadError) {
+      Alert.alert('Error', 'Gagal upload foto: ' + uploadError.message);
       return;
     }
 
-    const { error } = await supabase.from('laporan').insert({
-      judul,
-      tanggal,
-      deskripsi: detail,
-      nama: nama,
-      status: 'pending',
-      foto: null,
-    });
+    const { data: urlData } = supabase.storage
+      .from('laporan-foto')
+      .getPublicUrl(fileName);
 
-    if (error) {
-      Alert.alert('Error', 'Gagal mengirim laporan: ' + error.message);
-    } else {
-      Alert.alert('Berhasil!', 'Laporan kamu berhasil dikirim!', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
-    }
+    fotoUrl = urlData.publicUrl;
+  }
+
+  const { error } = await supabase.from('laporan').insert({
+    judul,
+    tanggal,
+    deskripsi: detail,
+    nama,
+    status: 'pending',
+    foto: fotoUrl,
+  });
+
+  if (error) {
+    Alert.alert('Error', 'Gagal mengirim laporan: ' + error.message);
+  } else {
+    Alert.alert('Berhasil!', 'Laporan kamu berhasil dikirim!', [
+      { text: 'OK', onPress: () => router.back() }
+    ]);
+  }
   };
 
   return (
