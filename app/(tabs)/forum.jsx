@@ -13,7 +13,7 @@ export default function ForumScreen() {
   const [nama, setNama] = useState('');
   const [foto, setFoto] = useState(null);
   const [likedIds, setLikedIds] = useState(new Set());
-  
+
   useFocusEffect(
     useCallback(() => {
       fetchUser();
@@ -40,11 +40,40 @@ export default function ForumScreen() {
   };
 
   const handleUpvote = async (item) => {
+  const isLiked = likedIds.has(item.id);
+
+    // Optimistic update
+    setLikedIds(prev => {
+      const s = new Set(prev);
+      isLiked ? s.delete(item.id) : s.add(item.id);
+      return s;
+    });
+    setLaporan(prev =>
+      prev.map(l => l.id === item.id
+        ? { ...l, upvotes: (l.upvotes || 0) + (isLiked ? -1 : 1) }
+        : l
+      )
+    );
+
     const { error } = await supabase
       .from('laporan')
-      .update({ upvotes: (item.upvotes || 0) + 1 })
+      .update({ upvotes: (item.upvotes || 0) + (isLiked ? -1 : 1) })
       .eq('id', item.id);
-    if (!error) fetchLaporan();
+
+    // Rollback kalau gagal
+    if (error) {
+      setLikedIds(prev => {
+        const s = new Set(prev);
+        isLiked ? s.add(item.id) : s.delete(item.id);
+        return s;
+      });
+      setLaporan(prev =>
+        prev.map(l => l.id === item.id
+          ? { ...l, upvotes: (l.upvotes || 0) + (isLiked ? 1 : -1) }
+          : l
+        )
+      );
+    }
   };
 
   return (
@@ -128,15 +157,20 @@ export default function ForumScreen() {
                 {/* Upvote & Share */}
                 <View style={styles.upvoteRow}>
                   <TouchableOpacity
-                    style={styles.upvoteBtn}
+                    style={[styles.upvoteBtn, likedIds.has(item.id) && styles.upvoteBtnActive]}
                     onPress={(e) => {
                       e.stopPropagation();
                       handleUpvote(item);
                     }}
                   >
-                    {/* <View style={styles.upvoteDot} /> */}
-                    <Ionicons name="thumbs-up-outline" size={18} color="#555" />
-                    <Text style={styles.upvoteText}>{item.upvotes || 0}</Text>
+                    <Ionicons
+                      name={likedIds.has(item.id) ? "thumbs-up" : "thumbs-up-outline"}
+                      size={18}
+                      color={likedIds.has(item.id) ? "#1565C0" : "#555"}
+                    />
+                    <Text style={[styles.upvoteText, likedIds.has(item.id) && styles.upvoteTextActive]}>
+                      {item.upvotes || 0}
+                    </Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -331,5 +365,12 @@ const styles = StyleSheet.create({
     color: '#555',
     fontSize: 13,
     fontWeight: '600',
+  },
+  upvoteBtnActive: {
+  backgroundColor: '#E3F2FD',
+  },
+  upvoteTextActive: {
+    color: '#1565C0',
+    fontWeight: 'bold',
   },
 });
