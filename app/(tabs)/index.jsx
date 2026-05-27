@@ -15,7 +15,7 @@ export default function HomeScreen() {
     latitude: -6.1944,
     longitude: 106.7669,
   });
-
+  
   useFocusEffect(
     useCallback(() => {
       fetchUser();

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { supabase } from '../../lib/supabase';
 
@@ -12,10 +12,13 @@ export default function ForumScreen() {
   const [nama, setNama] = useState('');
   const [foto, setFoto] = useState(null);
 
-  useEffect(() => {
-    fetchLaporan();
-  }, [sortBy]);
-  useEffect(() => {
+  useFocusEffect(
+    useCallback(() => {
+      fetchUser();
+      fetchLaporan();
+    }, [sortBy])
+  );
+
   const fetchUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
@@ -23,100 +26,123 @@ export default function ForumScreen() {
       setFoto(user.user_metadata?.foto || null);
     }
   };
-  fetchUser();
-  }, []);
 
   const fetchLaporan = async () => {
-  setLoading(true);
-  const { data, error } = await supabase
-    .from('laporan')
-    .select('*')
-    .order('created_at', { ascending: false }); // ← ganti dari tanggal ke created_at
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('laporan')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (!error) setLaporan(data);
+    setLoading(false);
+  };
 
-  if (!error) setLaporan(data);
-  setLoading(false);
+  const handleUpvote = async (item) => {
+    const { error } = await supabase
+      .from('laporan')
+      .update({ upvotes: (item.upvotes || 0) + 1 })
+      .eq('id', item.id);
+    if (!error) fetchLaporan();
   };
 
   return (
-  <View style={styles.container}>
-    <View style={styles.header}>
-      {foto ? (
-        <Image source={{ uri: foto }} style={styles.avatar} />
-      ) : (
-        <View style={styles.avatar} />
-      )}
-      <Text style={styles.headerTitle}>Halo, {nama}!</Text>
-      <TouchableOpacity onPress={() => router.push('/settings')}>
-        <Ionicons name="settings-sharp" size={26} color="#FFA500" />
-      </TouchableOpacity>
-    </View>
-
-    <View style={styles.content}>
-      <View style={styles.topRow}>
-        <Text style={styles.forumTitle}>Forum</Text>
-        <View style={styles.sortBox}>
-          <Text style={styles.sortLabel}>Sort by :</Text>
-          <TouchableOpacity
-            style={styles.sortBtn}
-            onPress={() => setSortBy(sortBy === 'terbaru' ? 'terlama' : 'terbaru')}
-          >
-            <Text style={styles.sortBtnText}>{sortBy}</Text>
-            <Ionicons name="chevron-down" size={14} color="#fff" />
-          </TouchableOpacity>
-        </View>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        {foto ? (
+          <Image source={{ uri: foto }} style={styles.avatar} />
+        ) : (
+          <View style={styles.avatar} />
+        )}
+        <Text style={styles.headerTitle}>Halo, {nama}!</Text>
+        <TouchableOpacity onPress={() => router.push('/settings')}>
+          <Ionicons name="settings-sharp" size={26} color="#FFA500" />
+        </TouchableOpacity>
       </View>
 
-      {loading ? (
-        <ActivityIndicator size="large" color="#1565C0" style={{ marginTop: 40 }} />
-      ) : (
-        <FlatList
-          data={laporan}
-          keyExtractor={(item) => item.id}
-          showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => router.push({ pathname: '/detail-forum', params: { id: item.id } })}
-          >
-            {/* Header Card */}
-            <View style={styles.cardHeader}>
-              {item.foto_profil ? (
-                <Image source={{ uri: item.foto_profil }} style={styles.cardAvatar} />
-              ) : (
-                <View style={styles.cardAvatar} />
-              )}
-              <View style={styles.cardInfo}>
-                <Text style={styles.cardNama}>{item.nama}</Text>
-                <Text style={styles.cardTanggal}>{item.tanggal}</Text>
-              </View>
-              <View style={[styles.statusBadge, {
-                backgroundColor:
-                  item.status === 'pending' ? '#FFA500' :
-                  item.status === 'proses' ? '#1565C0' : '#2E7D32'
-              }]}>
-                <Text style={styles.statusText}>{item.status}</Text>
-              </View>
-            </View>
+      <View style={styles.content}>
+        <View style={styles.topRow}>
+          <Text style={styles.forumTitle}>Forum</Text>
+          <View style={styles.sortBox}>
+            <Text style={styles.sortLabel}>Sort by :</Text>
+            <TouchableOpacity
+              style={styles.sortBtn}
+              onPress={() => setSortBy(sortBy === 'terbaru' ? 'terlama' : 'terbaru')}
+            >
+              <Text style={styles.sortBtnText}>{sortBy}</Text>
+              <Ionicons name="chevron-down" size={14} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
 
-            {/* Judul Laporan */}
-            <Text style={styles.cardJudul}>{item.judul}</Text>
+        {loading ? (
+          <ActivityIndicator size="large" color="#1565C0" style={{ marginTop: 40 }} />
+        ) : (
+          <FlatList
+            data={laporan}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 20 }}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.card}
+                onPress={() => router.push({ pathname: '/detail-forum', params: { id: item.id } })}
+              >
+                {/* Header Card */}
+                <View style={styles.cardHeader}>
+                  {item.foto_profil ? (
+                    <Image source={{ uri: item.foto_profil }} style={styles.cardAvatar} />
+                  ) : (
+                    <View style={styles.cardAvatar} />
+                  )}
+                  <View style={styles.cardInfo}>
+                    <Text style={styles.cardNama}>{item.nama}</Text>
+                    <Text style={styles.cardTanggal}>{item.tanggal}</Text>
+                  </View>
+                  <View style={[styles.statusBadge, {
+                    backgroundColor:
+                      item.status === 'pending' ? '#FFA500' :
+                      item.status === 'proses' ? '#1565C0' : '#2E7D32'
+                  }]}>
+                    <Text style={styles.statusText}>{item.status}</Text>
+                  </View>
+                </View>
 
-            {/* Lokasi */}
-            {item.alamat ? (
-              <Text style={styles.cardAlamat} numberOfLines={1}>📍 {item.alamat}</Text>
-            ) : null}
+                {/* Judul */}
+                <Text style={styles.cardJudul}>{item.judul}</Text>
 
-            {/* Foto Laporan */}
-            {item.foto ? (
-              <Image source={{ uri: item.foto }} style={styles.cardFoto} />
-            ) : null}
-          </TouchableOpacity>
-          )}
-        />
-      )}
+                {/* Lokasi */}
+                {item.alamat ? (
+                  <View style={styles.lokasiRow}>
+                    <Ionicons name="location-outline" size={12} color="#888" />
+                    <Text style={styles.cardAlamat} numberOfLines={1}>{item.alamat}</Text>
+                  </View>
+                ) : null}
+
+                {/* Foto Laporan */}
+                {item.foto ? (
+                  <Image source={{ uri: item.foto }} style={styles.cardFoto} />
+                ) : null}
+
+                {/* Upvote */}
+                <View style={styles.upvoteRow}>
+                  <TouchableOpacity
+                    style={styles.upvoteBtn}
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      handleUpvote(item);
+                    }}
+                  >
+                    <Ionicons name="thumbs-up-outline" size={16} color="#1565C0" />
+                    <Text style={styles.upvoteText}>{item.upvotes || 0} Upvote</Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            )}
+          />
+        )}
+      </View>
     </View>
-  </View>
-);
+  );
 }
 
 const styles = StyleSheet.create({
@@ -137,6 +163,7 @@ const styles = StyleSheet.create({
     height: 42,
     borderRadius: 21,
     backgroundColor: '#90CAF9',
+    overflow: 'hidden',
   },
   headerTitle: {
     flex: 1,
@@ -203,6 +230,7 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: 18,
     backgroundColor: '#90CAF9',
+    overflow: 'hidden',
   },
   cardInfo: {
     flex: 1,
@@ -226,38 +254,46 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: 'bold',
   },
-  // cardDeskripsi: {
-  //   fontSize: 13,
-  //   color: '#444',
-  //   marginBottom: 6,
-  // },
+  cardJudul: {
+    fontWeight: 'bold',
+    fontSize: 15,
+    color: '#222',
+    marginBottom: 4,
+  },
+  lokasiRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 8,
+  },
   cardAlamat: {
     fontSize: 11,
     color: '#888',
-  },
-  avatar: {
-  width: 42,
-  height: 42,
-  borderRadius: 21,
-  backgroundColor: '#90CAF9',
-  overflow: 'hidden',
-  },
-  cardJudul: {
-  fontWeight: 'bold',
-  fontSize: 20,
-  color: '#222',
-  marginBottom: 4,
-  marginTop: 4,
+    flex: 1,
   },
   cardFoto: {
-  width: '100%',
-  height: 160,
-  borderRadius: 8,
-  marginTop: 8,
+    width: '100%',
+    height: 160,
+    borderRadius: 8,
+    marginBottom: 8,
   },
-  // cardAvatarImg: {
-  // width: 36,
-  // height: 36,
-  // borderRadius: 18,
-  // },
+  upvoteRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 4,
+  },
+  upvoteBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#E3F2FD',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  upvoteText: {
+    color: '#1565C0',
+    fontWeight: 'bold',
+    fontSize: 12,
+  },
 });

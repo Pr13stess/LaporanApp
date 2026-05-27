@@ -105,7 +105,11 @@ export default function DetailForumScreen() {
             {/* Card Detail */}
             <View style={styles.card}>
               <View style={styles.cardHeader}>
-                <View style={styles.cardAvatar} />
+                {laporan.foto_profil ? (
+                  <Image source={{ uri: laporan.foto_profil }} style={styles.cardAvatar} />
+                ) : (
+                  <View style={styles.cardAvatar} />
+                )}
                 <View>
                   <Text style={styles.cardNama}>{laporan.nama}</Text>
                   <Text style={styles.cardTanggal}>{laporan.tanggal}</Text>
@@ -243,10 +247,11 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   cardAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#90CAF9',
+  width: 36,
+  height: 36,
+  borderRadius: 18,
+  backgroundColor: '#90CAF9',
+  overflow: 'hidden',
   },
   cardNama: {
     fontWeight: 'bold',
