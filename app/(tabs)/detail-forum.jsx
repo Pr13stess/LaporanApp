@@ -12,6 +12,7 @@ export default function DetailForumScreen() {
   const [foto, setFoto] = useState(null);
   const [komentar, setKomentar] = useState([]);
   const [inputKomentar, setInputKomentar] = useState('');
+  const [replyTo, setReplyTo] = useState(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -53,13 +54,24 @@ export default function DetailForumScreen() {
       laporan_id: id,
       nama,
       isi: inputKomentar.trim(),
+      reply_to: replyTo?.id || null,
+      reply_to_nama: replyTo?.nama || null,
     });
     if (error) {
       Alert.alert('Gagal', 'Gagal mengirim komentar');
     } else {
       setInputKomentar('');
+      setReplyTo(null);
       fetchKomentar();
     }
+  };
+
+  const handleUpvoteKomentar = async (item) => {
+    const { error } = await supabase
+      .from('komentar')
+      .update({ upvotes: (item.upvotes || 0) + 1 })
+      .eq('id', item.id);
+    if (!error) fetchKomentar();
   };
 
   const handleUpvote = async () => {
@@ -76,7 +88,7 @@ export default function DetailForumScreen() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.container}>
         {/* Header */}
@@ -101,7 +113,7 @@ export default function DetailForumScreen() {
             </TouchableOpacity>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             {/* Card Detail */}
             <View style={styles.card}>
               <View style={styles.cardHeader}>
@@ -116,25 +128,19 @@ export default function DetailForumScreen() {
                 </View>
               </View>
 
-              {/* Foto Laporan */}
+              <Text style={styles.judul}>{laporan.judul}</Text>
+              <Text style={styles.deskripsi}>{laporan.deskripsi}</Text>
+
+              {laporan.alamat ? (
+                <Text style={styles.alamat}>📍 {laporan.alamat}</Text>
+              ) : null}
+
               {laporan.foto && (
                 <View style={styles.fotoBox}>
                   <Image source={{ uri: laporan.foto }} style={styles.foto} />
                 </View>
               )}
 
-              {/* Judul */}
-              <Text style={styles.judul}>{laporan.judul}</Text>
-
-              {/* Deskripsi */}
-              <Text style={styles.deskripsi}>{laporan.deskripsi}</Text>
-
-              {/* Alamat */}
-              {laporan.alamat ? (
-                <Text style={styles.alamat}>📍 {laporan.alamat}</Text>
-              ) : null}
-
-              {/* Status */}
               <View style={[styles.statusBadge, {
                 backgroundColor:
                   laporan.status === 'pending' ? '#FFA500' :
@@ -143,7 +149,6 @@ export default function DetailForumScreen() {
                 <Text style={styles.statusText}>{laporan.status}</Text>
               </View>
 
-              {/* Upvote */}
               <View style={styles.upvoteRow}>
                 <TouchableOpacity style={styles.upvoteBtn} onPress={handleUpvote}>
                   <Ionicons name="thumbs-up" size={20} color="#1565C0" />
@@ -158,23 +163,52 @@ export default function DetailForumScreen() {
               <Text style={styles.komentarEmpty}>Belum ada komentar. Jadilah yang pertama!</Text>
             ) : (
               komentar.map((item) => (
-                <View key={item.id} style={styles.komentarItem}>
+                <View key={item.id} style={[styles.komentarItem, item.reply_to && styles.komentarReply]}>
                   <View style={styles.komentarAvatar} />
                   <View style={styles.komentarBubble}>
+                    {item.reply_to_nama && (
+                      <Text style={styles.replyLabel}>↩ Membalas {item.reply_to_nama}</Text>
+                    )}
                     <Text style={styles.komentarNama}>{item.nama}</Text>
                     <Text style={styles.komentarTeks}>{item.isi}</Text>
+                    <View style={styles.komentarActions}>
+                      <TouchableOpacity
+                        style={styles.replyBtn}
+                        onPress={() => setReplyTo(item)}
+                      >
+                        <Ionicons name="return-down-forward-outline" size={14} color="#1565C0" />
+                        <Text style={styles.replyBtnText}>Balas</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.upvoteKomentarBtn}
+                        onPress={() => handleUpvoteKomentar(item)}
+                      >
+                        <Ionicons name="arrow-up" size={14} color="#1565C0" />
+                        <Text style={styles.upvoteKomentarText}>{item.upvotes || 0}</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
               ))
             )}
-            <View style={{ height: 80 }} />
+            <View style={{ height: 20 }} />
           </ScrollView>
+
+          {/* Reply indicator */}
+          {replyTo && (
+            <View style={styles.replyIndicator}>
+              <Text style={styles.replyIndicatorText}>↩ Membalas {replyTo.nama}</Text>
+              <TouchableOpacity onPress={() => setReplyTo(null)}>
+                <Ionicons name="close-circle" size={18} color="#888" />
+              </TouchableOpacity>
+            </View>
+          )}
 
           {/* Input Komentar */}
           <View style={styles.inputKomentarRow}>
             <TextInput
               style={styles.inputKomentar}
-              placeholder="Tulis komentar..."
+              placeholder={replyTo ? `Balas ${replyTo.nama}...` : 'Tulis komentar...'}
               placeholderTextColor="#aaa"
               value={inputKomentar}
               onChangeText={setInputKomentar}
@@ -247,11 +281,11 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   cardAvatar: {
-  width: 36,
-  height: 36,
-  borderRadius: 18,
-  backgroundColor: '#90CAF9',
-  overflow: 'hidden',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#90CAF9',
+    overflow: 'hidden',
   },
   cardNama: {
     fontWeight: 'bold',
@@ -295,6 +329,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 10,
     marginBottom: 10,
+    marginTop: 6,
   },
   statusText: {
     color: '#fff',
@@ -337,6 +372,14 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 10,
   },
+  komentarReply: {
+  paddingLeft: 24,
+  borderLeftWidth: 3,
+  borderLeftColor: '#1565C0',
+  marginLeft: 16,
+  backgroundColor: '#F0F4FF', // sedikit beda dari putih
+  borderRadius: 8,
+  },
   komentarAvatar: {
     width: 32,
     height: 32,
@@ -350,6 +393,12 @@ const styles = StyleSheet.create({
     flex: 1,
     elevation: 1,
   },
+  replyLabel: {
+    fontSize: 11,
+    color: '#1565C0',
+    marginBottom: 4,
+    fontStyle: 'italic',
+  },
   komentarNama: {
     fontWeight: 'bold',
     fontSize: 12,
@@ -359,6 +408,51 @@ const styles = StyleSheet.create({
   komentarTeks: {
     fontSize: 13,
     color: '#333',
+    marginBottom: 6,
+  },
+  komentarActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 4,
+  },
+  replyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  replyBtnText: {
+    fontSize: 12,
+    color: '#1565C0',
+  },
+  upvoteKomentarBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#E3F2FD',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  upvoteKomentarText: {
+    fontSize: 12,
+    color: '#1565C0',
+    fontWeight: 'bold',
+  },
+  replyIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#E3F2FD',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginBottom: 6,
+  },
+  replyIndicatorText: {
+    fontSize: 12,
+    color: '#1565C0',
+    fontStyle: 'italic',
   },
   inputKomentarRow: {
     flexDirection: 'row',
