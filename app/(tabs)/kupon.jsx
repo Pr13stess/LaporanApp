@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { supabase } from '../../lib/supabase';
 
 const kuponData = [
   { id: '1', judul: 'Get A Coupon !!', deskripsi: '5 uploads your problem', progress: 80, warna: '#FFA500' },
@@ -11,16 +13,35 @@ const kuponData = [
 
 export default function KuponScreen() {
   const router = useRouter();
-  
+  const [nama, setNama] = useState('');
+  const [foto, setFoto] = useState(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchUser = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setNama(user.user_metadata?.nama || 'User');
+          setFoto(user.user_metadata?.foto || null);
+        }
+      };
+      fetchUser();
+    }, [])
+  );
+
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.avatar} />
-        <Text style={styles.headerTitle}>Halo, King!</Text>
-      <TouchableOpacity onPress={() => router.push('/settings')}>
-        <Ionicons name="settings-sharp" size={26} color="#FFA500" />
-      </TouchableOpacity>
+        {foto ? (
+          <Image source={{ uri: foto }} style={styles.avatar} />
+        ) : (
+          <View style={styles.avatar} />
+        )}
+        <Text style={styles.headerTitle}>Halo, {nama}!</Text>
+        <TouchableOpacity onPress={() => router.push('/settings')}>
+          <Ionicons name="settings-sharp" size={26} color="#FFA500" />
+        </TouchableOpacity>
       </View>
 
       {/* Content */}
@@ -33,12 +54,9 @@ export default function KuponScreen() {
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
             <View style={styles.card}>
-              {/* Kiri */}
               <View style={styles.cardLeft}>
                 <Text style={styles.cardJudul}>{item.judul}</Text>
                 <Text style={styles.cardDeskripsi}>{item.deskripsi}</Text>
-
-                {/* Progress Bar */}
                 <View style={styles.progressBg}>
                   <View style={[styles.progressFill, {
                     width: `${item.progress}%`,
@@ -46,8 +64,6 @@ export default function KuponScreen() {
                   }]} />
                 </View>
               </View>
-
-              {/* Kanan - Trophy */}
               <View style={[styles.trophyBox, { backgroundColor: item.warna }]}>
                 <Ionicons name="trophy" size={36} color="#fff" />
               </View>
@@ -77,6 +93,7 @@ const styles = StyleSheet.create({
     height: 42,
     borderRadius: 21,
     backgroundColor: '#90CAF9',
+    overflow: 'hidden',
   },
   headerTitle: {
     flex: 1,
