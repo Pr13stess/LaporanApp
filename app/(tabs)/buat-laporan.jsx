@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { supabase } from '../../lib/supabase';
 
@@ -11,6 +11,21 @@ export default function BuatLaporanScreen() {
   const [tanggal, setTanggal] = useState('');
   const [detail, setDetail] = useState('');
   const [foto, setFoto] = useState(null);
+  const [nama, setNama] = useState('');
+  const [fotoProfil, setFotoProfil] = useState(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchUser = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setNama(user.user_metadata?.nama || 'User');
+          setFotoProfil(user.user_metadata?.foto || null);
+        }
+      };
+      fetchUser();
+    }, [])
+  );
 
   const pilihFoto = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -33,7 +48,7 @@ export default function BuatLaporanScreen() {
       judul,
       tanggal,
       deskripsi: detail,
-      nama: 'King',
+      nama: nama,
       status: 'pending',
       foto: null,
     });
@@ -51,9 +66,13 @@ export default function BuatLaporanScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.avatar} />
-        <Text style={styles.headerTitle}>Halo, King!</Text>
-        <TouchableOpacity>
+        {fotoProfil ? (
+          <Image source={{ uri: fotoProfil }} style={styles.avatar} />
+        ) : (
+          <View style={styles.avatar} />
+        )}
+        <Text style={styles.headerTitle}>Halo, {nama}!</Text>
+        <TouchableOpacity onPress={() => router.push('/settings')}>
           <Ionicons name="settings-sharp" size={26} color="#FFA500" />
         </TouchableOpacity>
       </View>
@@ -128,6 +147,7 @@ const styles = StyleSheet.create({
     height: 42,
     borderRadius: 21,
     backgroundColor: '#90CAF9',
+    overflow: 'hidden',
   },
   headerTitle: {
     flex: 1,
@@ -157,7 +177,6 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     fontSize: 14,
     color: '#333',
-    backgroundColor: '#fff',
   },
   inputRow: {
     flexDirection: 'row',
@@ -167,7 +186,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 12,
     marginBottom: 14,
-    backgroundColor: '#fff',
   },
   calendarIcon: {
     marginLeft: 8,
@@ -183,7 +201,6 @@ const styles = StyleSheet.create({
     height: 110,
     marginBottom: 28,
     overflow: 'hidden',
-    backgroundColor: '#fff',
   },
   fotoPlaceholderBox: {
     flex: 1,
