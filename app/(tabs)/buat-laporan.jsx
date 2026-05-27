@@ -13,7 +13,7 @@ export default function BuatLaporanScreen() {
   const [foto, setFoto] = useState(null);
   const [nama, setNama] = useState('');
   const [fotoProfil, setFotoProfil] = useState(null);
-
+  
   useFocusEffect(
     useCallback(() => {
       const fetchUser = async () => {

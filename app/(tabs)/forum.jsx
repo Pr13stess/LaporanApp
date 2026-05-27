@@ -27,14 +27,14 @@ export default function ForumScreen() {
   }, []);
 
   const fetchLaporan = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('laporan')
-      .select('*')
-      .order('tanggal', { ascending: sortBy === 'terlama' });
+  setLoading(true);
+  const { data, error } = await supabase
+    .from('laporan')
+    .select('*')
+    .order('created_at', { ascending: false }); // ← ganti dari tanggal ke created_at
 
-    if (!error) setLaporan(data);
-    setLoading(false);
+  if (!error) setLaporan(data);
+  setLoading(false);
   };
 
   return (
@@ -74,31 +74,43 @@ export default function ForumScreen() {
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.card}
-              onPress={() => router.push({ pathname: '/detail-forum', params: { id: item.id } })}
-            >
-              <View style={styles.cardHeader}>
-                {item.foto_profil ? (
-                  <Image source={{ uri: item.foto_profil }} style={styles.cardAvatar} />
-                ) : (
-                  <View style={styles.cardAvatar} />
-                )}
-                <View style={styles.cardInfo}>
-                  <Text style={styles.cardNama}>{item.nama}</Text>
-                  <Text style={styles.cardTanggal}>{item.tanggal}</Text>
-                </View>
-                <View style={[styles.statusBadge, {
-                  backgroundColor:
-                    item.status === 'pending' ? '#FFA500' :
-                    item.status === 'proses' ? '#1565C0' : '#2E7D32'
-                }]}>
-                  <Text style={styles.statusText}>{item.status}</Text>
-                </View>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => router.push({ pathname: '/detail-forum', params: { id: item.id } })}
+          >
+            {/* Header Card */}
+            <View style={styles.cardHeader}>
+              {item.foto_profil ? (
+                <Image source={{ uri: item.foto_profil }} style={styles.cardAvatar} />
+              ) : (
+                <View style={styles.cardAvatar} />
+              )}
+              <View style={styles.cardInfo}>
+                <Text style={styles.cardNama}>{item.nama}</Text>
+                <Text style={styles.cardTanggal}>{item.tanggal}</Text>
               </View>
-              <Text style={styles.cardDeskripsi} numberOfLines={2}>{item.deskripsi}</Text>
-              <Text style={styles.cardAlamat} numberOfLines={2}>📍 {item.alamat}</Text>
-            </TouchableOpacity>
+              <View style={[styles.statusBadge, {
+                backgroundColor:
+                  item.status === 'pending' ? '#FFA500' :
+                  item.status === 'proses' ? '#1565C0' : '#2E7D32'
+              }]}>
+                <Text style={styles.statusText}>{item.status}</Text>
+              </View>
+            </View>
+
+            {/* Judul Laporan */}
+            <Text style={styles.cardJudul}>{item.judul}</Text>
+
+            {/* Lokasi */}
+            {item.alamat ? (
+              <Text style={styles.cardAlamat} numberOfLines={1}>📍 {item.alamat}</Text>
+            ) : null}
+
+            {/* Foto Laporan */}
+            {item.foto ? (
+              <Image source={{ uri: item.foto }} style={styles.cardFoto} />
+            ) : null}
+          </TouchableOpacity>
           )}
         />
       )}
@@ -214,11 +226,11 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: 'bold',
   },
-  cardDeskripsi: {
-    fontSize: 13,
-    color: '#444',
-    marginBottom: 6,
-  },
+  // cardDeskripsi: {
+  //   fontSize: 13,
+  //   color: '#444',
+  //   marginBottom: 6,
+  // },
   cardAlamat: {
     fontSize: 11,
     color: '#888',
@@ -229,6 +241,19 @@ const styles = StyleSheet.create({
   borderRadius: 21,
   backgroundColor: '#90CAF9',
   overflow: 'hidden',
+  },
+  cardJudul: {
+  fontWeight: 'bold',
+  fontSize: 20,
+  color: '#222',
+  marginBottom: 4,
+  marginTop: 4,
+  },
+  cardFoto: {
+  width: '100%',
+  height: 160,
+  borderRadius: 8,
+  marginTop: 8,
   },
   // cardAvatarImg: {
   // width: 36,
