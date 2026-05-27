@@ -52,21 +52,22 @@ export default function DetailForumScreen() {
   };
 
   const kirimKomentar = async () => {
-    if (!inputKomentar.trim()) return;
-    const { error } = await supabase.from('komentar').insert({
-      laporan_id: id,
-      nama,
-      isi: inputKomentar.trim(),
-      reply_to: replyTo?.id || null,
-      reply_to_nama: replyTo?.nama || null,
-    });
-    if (error) {
-      Alert.alert('Gagal', 'Gagal mengirim komentar');
-    } else {
-      setInputKomentar('');
-      setReplyTo(null);
-      fetchKomentar();
-    }
+  if (!inputKomentar.trim()) return;
+  const { error } = await supabase.from('komentar').insert({
+    laporan_id: id,
+    nama,
+    foto_profil: foto, 
+    isi: inputKomentar.trim(),
+    reply_to: replyTo?.id || null,
+    reply_to_nama: replyTo?.nama || null,
+  });
+  if (error) {
+    Alert.alert('Gagal', "Gagal mengirim komentar!");
+  } else {
+    setInputKomentar('');
+    setReplyTo(null);
+    fetchKomentar();
+  }
   };
 
   const handleUpvoteKomentar = async (item) => {
@@ -240,7 +241,11 @@ export default function DetailForumScreen() {
             ) : (
               komentar.map((item) => (
                 <View key={item.id} style={[styles.komentarItem, item.reply_to && styles.komentarReply]}>
-                  <View style={styles.komentarAvatar} />
+                  {item.foto_profil ? (
+                      <Image source={{ uri: item.foto_profil }} style={styles.komentarAvatar} />
+                    ) : (
+                      <View style={styles.komentarAvatar} />
+                    )}
                   <View style={styles.komentarBubble}>
                     {item.reply_to_nama && (
                       <Text style={styles.replyLabel}>↩ Membalas {item.reply_to_nama}</Text>
@@ -464,10 +469,11 @@ const styles = StyleSheet.create({
   borderRadius: 8,
   },
   komentarAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#90CAF9',
+  width: 32,
+  height: 32,
+  borderRadius: 16,
+  backgroundColor: '#90CAF9',
+  overflow: 'hidden',
   },
   komentarBubble: {
     backgroundColor: '#fff',
