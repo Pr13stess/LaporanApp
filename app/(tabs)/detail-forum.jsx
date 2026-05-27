@@ -14,7 +14,9 @@ export default function DetailForumScreen() {
   const [inputKomentar, setInputKomentar] = useState('');
   const [replyTo, setReplyTo] = useState(null);
   const [fotoFullscreen, setFotoFullscreen] = useState(null);
-  
+  const [isLiked, setIsLiked] = useState(false);
+  const [likedKomentarIds, setLikedKomentarIds] = useState(new Set());
+
   useFocusEffect(
     useCallback(() => {
       fetchDetail();
@@ -68,20 +70,62 @@ export default function DetailForumScreen() {
   };
 
   const handleUpvoteKomentar = async (item) => {
+    const isLikedKomentar = likedKomentarIds.has(item.id);
+
+    setLikedKomentarIds(prev => {
+      const s = new Set(prev);
+      isLikedKomentar ? s.delete(item.id) : s.add(item.id);
+      return s;
+    });
+    setKomentar(prev =>
+      prev.map(k => k.id === item.id
+        ? { ...k, upvotes: (k.upvotes || 0) + (isLikedKomentar ? -1 : 1) }
+        : k
+      )
+    );
+
     const { error } = await supabase
       .from('komentar')
-      .update({ upvotes: (item.upvotes || 0) + 1 })
+      .update({ upvotes: (item.upvotes || 0) + (isLikedKomentar ? -1 : 1) })
       .eq('id', item.id);
-    if (!error) fetchKomentar();
+
+    if (error) {
+      setLikedKomentarIds(prev => {
+        const s = new Set(prev);
+        isLikedKomentar ? s.add(item.id) : s.delete(item.id);
+        return s;
+      });
+      setKomentar(prev =>
+        prev.map(k => k.id === item.id
+          ? { ...k, upvotes: (k.upvotes || 0) + (isLikedKomentar ? 1 : -1) }
+          : k
+        )
+      );
+    }
   };
 
   const handleUpvote = async () => {
     if (!laporan) return;
+
+    // Optimistic update
+    setIsLiked(prev => !prev);
+    setLaporan(prev => ({
+      ...prev,
+      upvotes: (prev.upvotes || 0) + (isLiked ? -1 : 1)
+    }));
+
     const { error } = await supabase
       .from('laporan')
-      .update({ upvotes: (laporan.upvotes || 0) + 1 })
+      .update({ upvotes: (laporan.upvotes || 0) + (isLiked ? -1 : 1) })
       .eq('id', id);
-    if (!error) fetchDetail();
+
+    if (error) {
+      setIsLiked(prev => !prev);
+      setLaporan(prev => ({
+        ...prev,
+        upvotes: (prev.upvotes || 0) + (isLiked ? 1 : -1)
+      }));
+    }
   };
 
   if (!laporan) return null;
@@ -110,25 +154,22 @@ export default function DetailForumScreen() {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.replace('/(tabs)/forum')}>
+            <Ionicons name="arrow-back" size={26} color="#fff" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Detail Laporan</Text>
           {foto ? (
             <Image source={{ uri: foto }} style={styles.avatar} />
           ) : (
             <View style={styles.avatar} />
           )}
-          <Text style={styles.headerTitle}>Halo, {nama}!</Text>
-          <TouchableOpacity onPress={() => router.push('/settings')}>
-            <Ionicons name="settings-sharp" size={26} color="#FFA500" />
-          </TouchableOpacity>
         </View>
 
         <View style={styles.content}>
           {/* Top Bar */}
-          <View style={styles.topBar}>
-            <Text style={styles.topBarTitle}>Detail Laporan</Text>
-            <TouchableOpacity onPress={() => router.back()}>
-              <Ionicons name="arrow-back-circle" size={28} color="#1565C0" />
-            </TouchableOpacity>
-          </View>
+          {/* <View style={styles.topBar}>
+            <Text style={styles.topBarTitle}>Laporan</Text>
+          </View> */}
 
           <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             {/* Card Detail */}
@@ -160,19 +201,35 @@ export default function DetailForumScreen() {
                 </TouchableOpacity>
               )}
 
-              <View style={[styles.statusBadge, {
-                backgroundColor:
-                  laporan.status === 'pending' ? '#FFA500' :
-                  laporan.status === 'proses' ? '#1565C0' : '#2E7D32'
-              }]}>
-                <Text style={styles.statusText}>{laporan.status}</Text>
-              </View>
+              <View style={styles.bottomRow}>
+                <View style={[styles.statusBadge, {
+                  backgroundColor:
+                    laporan.status === 'pending' ? '#D32F2F' :
+                    laporan.status === 'proses' ? '#1565C0' : '#2E7D32'
+                }]}>
+                  <Text style={styles.statusText}>{laporan.status}</Text>
+                </View>
 
-              <View style={styles.upvoteRow}>
-                <TouchableOpacity style={styles.upvoteBtn} onPress={handleUpvote}>
-                  <Ionicons name="thumbs-up" size={20} color="#1565C0" />
-                  <Text style={styles.upvoteText}>Upvote ({laporan.upvotes || 0})</Text>
-                </TouchableOpacity>
+                <View style={styles.actionRow}>
+                  <TouchableOpacity
+                    style={[styles.upvoteBtn, isLiked && styles.upvoteBtnActive]}
+                    onPress={handleUpvote}
+                  >
+                    <Ionicons
+                      name={isLiked ? "thumbs-up" : "thumbs-up-outline"}
+                      size={18}
+                      color={isLiked ? "#1565C0" : "#555"}
+                    />
+                    <Text style={[styles.upvoteText, isLiked && styles.upvoteTextActive]}>
+                      {laporan.upvotes || 0}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity style={styles.shareBtn}>
+                    <Ionicons name="share-social-outline" size={18} color="#555" />
+                    <Text style={styles.shareBtnText}>Share</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
 
@@ -244,6 +301,12 @@ export default function DetailForumScreen() {
 }
 
 const styles = StyleSheet.create({
+  upvoteKomentarBtnActive: {
+    backgroundColor: '#BBDEFB',
+  },
+  upvoteKomentarTextActive: {
+    color: '#0D47A1',
+  },
   container: {
     flex: 1,
     backgroundColor: '#1565C0',
@@ -251,10 +314,10 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingTop: 50,
     paddingBottom: 12,
-    gap: 10,
   },
   avatar: {
     width: 42,
@@ -264,10 +327,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   headerTitle: {
-    flex: 1,
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 18,
+    
   },
   content: {
     flex: 1,
@@ -510,5 +573,51 @@ const styles = StyleSheet.create({
   modalFoto: {
   width: '100%',
   height: '80%',
+  },
+  bottomRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  marginTop: 10,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  upvoteBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#F0F0F0',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  upvoteBtnActive: {
+    backgroundColor: '#E3F2FD',
+  },
+  upvoteText: {
+    color: '#555',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  upvoteTextActive: {
+    color: '#1565C0',
+    fontWeight: 'bold',
+  },
+  shareBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#F0F0F0',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  shareBtnText: {
+    color: '#555',
+    fontSize: 13,
+    fontWeight: '600',
   },
 });
