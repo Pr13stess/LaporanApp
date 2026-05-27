@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { supabase } from '../../lib/supabase';
 
 export default function ForumScreen() {
@@ -9,10 +9,22 @@ export default function ForumScreen() {
   const [sortBy, setSortBy] = useState('terbaru');
   const [laporan, setLaporan] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [nama, setNama] = useState('');
+  const [foto, setFoto] = useState(null);
 
   useEffect(() => {
     fetchLaporan();
   }, [sortBy]);
+  useEffect(() => {
+  const fetchUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      setNama(user.user_metadata?.nama || 'User');
+      setFoto(user.user_metadata?.foto || null);
+    }
+  };
+  fetchUser();
+  }, []);
 
   const fetchLaporan = async () => {
     setLoading(true);
@@ -26,65 +38,69 @@ export default function ForumScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+  <View style={styles.container}>
+    <View style={styles.header}>
+      {foto ? (
+        <Image source={{ uri: foto }} style={styles.avatar} />
+      ) : (
         <View style={styles.avatar} />
-        <Text style={styles.headerTitle}>Halo, King!</Text>
+      )}
+      <Text style={styles.headerTitle}>Halo, {nama}!</Text>
       <TouchableOpacity onPress={() => router.push('/settings')}>
         <Ionicons name="settings-sharp" size={26} color="#FFA500" />
       </TouchableOpacity>
-      </View>
-
-      <View style={styles.content}>
-        <View style={styles.topRow}>
-          <Text style={styles.forumTitle}>Forum</Text>
-          <View style={styles.sortBox}>
-            <Text style={styles.sortLabel}>Sort by :</Text>
-            <TouchableOpacity
-              style={styles.sortBtn}
-              onPress={() => setSortBy(sortBy === 'terbaru' ? 'terlama' : 'terbaru')}
-            >
-              <Text style={styles.sortBtnText}>{sortBy}</Text>
-              <Ionicons name="chevron-down" size={14} color="#fff" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {loading ? (
-          <ActivityIndicator size="large" color="#1565C0" style={{ marginTop: 40 }} />
-        ) : (
-          <FlatList
-            data={laporan}
-            keyExtractor={(item) => item.id}
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.card}
-                onPress={() => router.push({ pathname: '/detail-forum', params: { id: item.id } })}
-              >
-                <View style={styles.cardHeader}>
-                  <View style={styles.cardAvatar} />
-                  <View style={styles.cardInfo}>
-                    <Text style={styles.cardNama}>{item.nama}</Text>
-                    <Text style={styles.cardTanggal}>{item.tanggal}</Text>
-                  </View>
-                  <View style={[styles.statusBadge, {
-                    backgroundColor:
-                      item.status === 'pending' ? '#FFA500' :
-                      item.status === 'proses' ? '#1565C0' : '#2E7D32'
-                  }]}>
-                    <Text style={styles.statusText}>{item.status}</Text>
-                  </View>
-                </View>
-                <Text style={styles.cardDeskripsi} numberOfLines={2}>{item.deskripsi}</Text>
-                <Text style={styles.cardAlamat} numberOfLines={2}>📍 {item.alamat}</Text>
-              </TouchableOpacity>
-            )}
-          />
-        )}
-      </View>
     </View>
-  );
+
+    <View style={styles.content}>
+      <View style={styles.topRow}>
+        <Text style={styles.forumTitle}>Forum</Text>
+        <View style={styles.sortBox}>
+          <Text style={styles.sortLabel}>Sort by :</Text>
+          <TouchableOpacity
+            style={styles.sortBtn}
+            onPress={() => setSortBy(sortBy === 'terbaru' ? 'terlama' : 'terbaru')}
+          >
+            <Text style={styles.sortBtnText}>{sortBy}</Text>
+            <Ionicons name="chevron-down" size={14} color="#fff" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {loading ? (
+        <ActivityIndicator size="large" color="#1565C0" style={{ marginTop: 40 }} />
+      ) : (
+        <FlatList
+          data={laporan}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => router.push({ pathname: '/detail-forum', params: { id: item.id } })}
+            >
+              <View style={styles.cardHeader}>
+                <View style={styles.cardAvatar} />
+                <View style={styles.cardInfo}>
+                  <Text style={styles.cardNama}>{item.nama}</Text>
+                  <Text style={styles.cardTanggal}>{item.tanggal}</Text>
+                </View>
+                <View style={[styles.statusBadge, {
+                  backgroundColor:
+                    item.status === 'pending' ? '#FFA500' :
+                    item.status === 'proses' ? '#1565C0' : '#2E7D32'
+                }]}>
+                  <Text style={styles.statusText}>{item.status}</Text>
+                </View>
+              </View>
+              <Text style={styles.cardDeskripsi} numberOfLines={2}>{item.deskripsi}</Text>
+              <Text style={styles.cardAlamat} numberOfLines={2}>📍 {item.alamat}</Text>
+            </TouchableOpacity>
+          )}
+        />
+      )}
+    </View>
+  </View>
+);
 }
 
 const styles = StyleSheet.create({
@@ -202,5 +218,12 @@ const styles = StyleSheet.create({
   cardAlamat: {
     fontSize: 11,
     color: '#888',
+  },
+  avatar: {
+  width: 42,
+  height: 42,
+  borderRadius: 21,
+  backgroundColor: '#90CAF9',
+  overflow: 'hidden',
   },
 });
