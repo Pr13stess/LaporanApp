@@ -79,7 +79,11 @@ export default function ForumScreen() {
               onPress={() => router.push({ pathname: '/detail-forum', params: { id: item.id } })}
             >
               <View style={styles.cardHeader}>
-                <View style={styles.cardAvatar} />
+                {item.foto_profil ? (
+                  <Image source={{ uri: item.foto_profil }} style={styles.cardAvatar} />
+                ) : (
+                  <View style={styles.cardAvatar} />
+                )}
                 <View style={styles.cardInfo}>
                   <Text style={styles.cardNama}>{item.nama}</Text>
                   <Text style={styles.cardTanggal}>{item.tanggal}</Text>
@@ -226,4 +230,9 @@ const styles = StyleSheet.create({
   backgroundColor: '#90CAF9',
   overflow: 'hidden',
   },
+  // cardAvatarImg: {
+  // width: 36,
+  // height: 36,
+  // borderRadius: 18,
+  // },
 });

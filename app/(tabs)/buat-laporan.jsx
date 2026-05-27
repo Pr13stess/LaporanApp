@@ -79,6 +79,7 @@ const kirimLaporan = async () => {
     nama,
     status: 'pending',
     foto: fotoUrl,
+    foto_profil: fotoProfil,
   });
 
   if (error) {
