@@ -8,7 +8,7 @@ import { supabase } from '../../lib/supabase';
 export default function BuatLaporanScreen() {
   const router = useRouter();
   const [judul, setJudul] = useState('');
-  const [tanggal, setTanggal] = useState('');
+  const [tanggal, setTanggal] = useState(new Date().toISOString().split('T')[0]);
   const [detail, setDetail] = useState('');
   const [foto, setFoto] = useState(null);
   const [nama, setNama] = useState('');
@@ -39,7 +39,7 @@ export default function BuatLaporanScreen() {
   };
 
   const kirimLaporan = async () => {
-    if (!judul || !tanggal || !detail) {
+    if (!judul || !detail) {
       Alert.alert('Gagal', 'Semua field harus diisi!');
       return;
     }
@@ -89,7 +89,7 @@ export default function BuatLaporanScreen() {
           onChangeText={setJudul}
         />
 
-        <View style={styles.inputRow}>
+        {/* <View style={styles.inputRow}>
           <TextInput
             style={[styles.input, { flex: 1, marginBottom: 0, borderWidth: 0 }]}
             placeholder="Tanggal"
@@ -98,7 +98,7 @@ export default function BuatLaporanScreen() {
             onChangeText={setTanggal}
           />
           <Ionicons name="calendar-outline" size={22} color="#aaa" style={styles.calendarIcon} />
-        </View>
+        </View> */}
 
         <TextInput
           style={[styles.input, styles.inputMultiline]}
