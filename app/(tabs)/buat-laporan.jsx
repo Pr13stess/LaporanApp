@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import * as Location from 'expo-location';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -8,24 +9,51 @@ import { supabase } from '../../lib/supabase';
 export default function BuatLaporanScreen() {
   const router = useRouter();
   const [judul, setJudul] = useState('');
-  const [tanggal, setTanggal] = useState(new Date().toISOString().split('T')[0]);
+  const [tanggal] = useState(new Date().toISOString().split('T')[0]);
   const [detail, setDetail] = useState('');
   const [foto, setFoto] = useState(null);
   const [nama, setNama] = useState('');
   const [fotoProfil, setFotoProfil] = useState(null);
-  
+  const [alamat, setAlamat] = useState('');
+  const [loadingLokasi, setLoadingLokasi] = useState(false);
+
   useFocusEffect(
     useCallback(() => {
-      const fetchUser = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          setNama(user.user_metadata?.nama || 'User');
-          setFotoProfil(user.user_metadata?.foto || null);
-        }
-      };
       fetchUser();
+      fetchLokasi();
     }, [])
   );
+
+  const fetchUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      setNama(user.user_metadata?.nama || 'User');
+      setFotoProfil(user.user_metadata?.foto || null);
+    }
+  };
+
+  const fetchLokasi = async () => {
+    setLoadingLokasi(true);
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Izin Ditolak', 'Izin lokasi diperlukan untuk mengisi alamat otomatis.');
+      setLoadingLokasi(false);
+      return;
+    }
+
+    const location = await Location.getCurrentPositionAsync({});
+    const geocode = await Location.reverseGeocodeAsync({
+      latitude: location.coords.latitude,
+      longitude: location.coords.longitude,
+    });
+
+    if (geocode.length > 0) {
+      const g = geocode[0];
+      const alamatLengkap = `${g.street || ''} ${g.district || ''}, ${g.city || ''}, ${g.region || ''}, ${g.country || ''}`.trim();
+      setAlamat(alamatLengkap);
+    }
+    setLoadingLokasi(false);
+  };
 
   const pilihFoto = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -38,57 +66,58 @@ export default function BuatLaporanScreen() {
     }
   };
 
-const kirimLaporan = async () => {
-  if (!judul || !detail) {
-    Alert.alert('Gagal', 'Semua field harus diisi!');
-    return;
-  }
-
-  let fotoUrl = null;
-
-  if (foto) {
-    const ext = foto.split('.').pop();
-    const fileName = `${Date.now()}.${ext}`;
-    const formData = new FormData();
-    formData.append('file', {
-      uri: foto,
-      name: fileName,
-      type: `image/${ext}`,
-    });
-
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('laporan-foto')
-      .upload(fileName, formData);
-
-    if (uploadError) {
-      Alert.alert('Error', 'Gagal upload foto: ' + uploadError.message);
+  const kirimLaporan = async () => {
+    if (!judul || !detail) {
+      Alert.alert('Gagal', 'Semua field harus diisi!');
       return;
     }
 
-    const { data: urlData } = supabase.storage
-      .from('laporan-foto')
-      .getPublicUrl(fileName);
+    let fotoUrl = null;
 
-    fotoUrl = urlData.publicUrl;
-  }
+    if (foto) {
+      const ext = foto.split('.').pop();
+      const fileName = `${Date.now()}.${ext}`;
+      const formData = new FormData();
+      formData.append('file', {
+        uri: foto,
+        name: fileName,
+        type: `image/${ext}`,
+      });
 
-  const { error } = await supabase.from('laporan').insert({
-    judul,
-    tanggal,
-    deskripsi: detail,
-    nama,
-    status: 'pending',
-    foto: fotoUrl,
-    foto_profil: fotoProfil,
-  });
+      const { error: uploadError } = await supabase.storage
+        .from('laporan-foto')
+        .upload(fileName, formData);
 
-  if (error) {
-    Alert.alert('Error', 'Gagal mengirim laporan: ' + error.message);
-  } else {
-    Alert.alert('Berhasil!', 'Laporan kamu berhasil dikirim!', [
-      { text: 'OK', onPress: () => router.back() }
-    ]);
-  }
+      if (uploadError) {
+        Alert.alert('Error', 'Gagal upload foto: ' + uploadError.message);
+        return;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('laporan-foto')
+        .getPublicUrl(fileName);
+
+      fotoUrl = urlData.publicUrl;
+    }
+
+    const { error } = await supabase.from('laporan').insert({
+      judul,
+      tanggal,
+      deskripsi: detail,
+      nama,
+      status: 'pending',
+      foto: fotoUrl,
+      foto_profil: fotoProfil,
+      alamat,
+    });
+
+    if (error) {
+      Alert.alert('Error', 'Gagal mengirim laporan: ' + error.message);
+    } else {
+      Alert.alert('Berhasil!', 'Laporan kamu berhasil dikirim!', [
+        { text: 'OK', onPress: () => router.back() }
+      ]);
+    }
   };
 
   return (
@@ -118,17 +147,6 @@ const kirimLaporan = async () => {
           onChangeText={setJudul}
         />
 
-        {/* <View style={styles.inputRow}>
-          <TextInput
-            style={[styles.input, { flex: 1, marginBottom: 0, borderWidth: 0 }]}
-            placeholder="Tanggal"
-            placeholderTextColor="#aaa"
-            value={tanggal}
-            onChangeText={setTanggal}
-          />
-          <Ionicons name="calendar-outline" size={22} color="#aaa" style={styles.calendarIcon} />
-        </View> */}
-
         <TextInput
           style={[styles.input, styles.inputMultiline]}
           placeholder="Detail"
@@ -139,6 +157,18 @@ const kirimLaporan = async () => {
           numberOfLines={4}
         />
 
+        {/* Lokasi */}
+        <View style={styles.lokasiBox}>
+          <Ionicons name="location-outline" size={18} color="#1565C0" />
+          <Text style={styles.lokasiText} numberOfLines={2}>
+            {loadingLokasi ? 'Mengambil lokasi...' : alamat || 'Lokasi tidak ditemukan'}
+          </Text>
+          <TouchableOpacity onPress={fetchLokasi}>
+            <Ionicons name="refresh-outline" size={18} color="#1565C0" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Upload Foto */}
         <TouchableOpacity style={styles.fotoBox} onPress={pilihFoto}>
           {foto ? (
             <Image source={{ uri: foto }} style={styles.fotoPreview} />
@@ -207,21 +237,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
   },
-  inputRow: {
+  inputMultiline: {
+    height: 110,
+    textAlignVertical: 'top',
+  },
+  lokasiBox: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1.5,
     borderColor: '#ccc',
     borderRadius: 10,
-    paddingHorizontal: 12,
+    padding: 12,
     marginBottom: 14,
+    gap: 8,
+    backgroundColor: '#F0F4FF',
   },
-  calendarIcon: {
-    marginLeft: 8,
-  },
-  inputMultiline: {
-    height: 110,
-    textAlignVertical: 'top',
+  lokasiText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#333',
   },
   fotoBox: {
     borderWidth: 1.5,
