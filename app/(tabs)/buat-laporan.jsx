@@ -124,15 +124,15 @@ export default function BuatLaporanScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.replace('/(tabs)/forum')}>
+          <Ionicons name="arrow-back" size={26} color="#fff" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Buat Laporan</Text>
         {fotoProfil ? (
           <Image source={{ uri: fotoProfil }} style={styles.avatar} />
         ) : (
           <View style={styles.avatar} />
         )}
-        <Text style={styles.headerTitle}>Halo, {nama}!</Text>
-        <TouchableOpacity onPress={() => router.push('/settings')}>
-          <Ionicons name="settings-sharp" size={26} color="#FFA500" />
-        </TouchableOpacity>
       </View>
 
       {/* Form */}
@@ -181,7 +181,8 @@ export default function BuatLaporanScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.btnKirim} onPress={kirimLaporan}>
-          <Text style={styles.btnKirimText}>Kirim</Text>
+          <Ionicons name="send-outline" size={18} color="#fff" />
+          <Text style={styles.btnKirimText}>Kirim Laporan</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -196,10 +197,10 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingTop: 50,
     paddingBottom: 12,
-    gap: 10,
   },
   avatar: {
     width: 42,
@@ -209,7 +210,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   headerTitle: {
-    flex: 1,
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 18,
@@ -282,16 +282,29 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   btnKirim: {
-    backgroundColor: '#FFA500',
+    backgroundColor: '#1565C0',
     borderRadius: 20,
     padding: 14,
     alignItems: 'center',
-    alignSelf: 'flex-end',
-    paddingHorizontal: 36,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 4,
   },
   btnKirimText: {
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
   },
+  input: {
+  borderWidth: 1.5,
+  borderColor: '#ccc',
+  borderRadius: 10,
+  padding: 12,
+  paddingLeft: 14,
+  marginBottom: 14,
+  fontSize: 14,
+  color: '#333',
+  backgroundColor: '#FAFAFA',
+},
 });
