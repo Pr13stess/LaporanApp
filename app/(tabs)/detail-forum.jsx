@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { supabase } from '../../lib/supabase';
 
 export default function DetailForumScreen() {
@@ -13,7 +13,8 @@ export default function DetailForumScreen() {
   const [komentar, setKomentar] = useState([]);
   const [inputKomentar, setInputKomentar] = useState('');
   const [replyTo, setReplyTo] = useState(null);
-
+  const [fotoFullscreen, setFotoFullscreen] = useState(null);
+  
   useFocusEffect(
     useCallback(() => {
       fetchDetail();
@@ -85,7 +86,23 @@ export default function DetailForumScreen() {
 
   if (!laporan) return null;
 
-  return (
+  return ( 
+ <>
+    {/* Modal Fullscreen Foto */}
+    <Modal visible={!!fotoFullscreen} transparent animationType="fade">
+      <TouchableOpacity
+        style={styles.modalOverlay}
+        onPress={() => setFotoFullscreen(null)}
+      >
+        <Image
+          source={{ uri: fotoFullscreen }}
+          style={styles.modalFoto}
+          resizeMode="contain"
+        />
+      </TouchableOpacity>
+    </Modal>
+
+
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -136,9 +153,11 @@ export default function DetailForumScreen() {
               ) : null}
 
               {laporan.foto && (
-                <View style={styles.fotoBox}>
-                  <Image source={{ uri: laporan.foto }} style={styles.foto} />
-                </View>
+                <TouchableOpacity onPress={() => setFotoFullscreen(laporan.foto)}>
+                  <View style={styles.fotoBox}>
+                    <Image source={{ uri: laporan.foto }} style={styles.foto} />
+                  </View>
+                </TouchableOpacity>
               )}
 
               <View style={[styles.statusBadge, {
@@ -220,6 +239,7 @@ export default function DetailForumScreen() {
         </View>
       </View>
     </KeyboardAvoidingView>
+  </>
   );
 }
 
@@ -480,5 +500,15 @@ const styles = StyleSheet.create({
     padding: 10,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  modalOverlay: {
+  flex: 1,
+  backgroundColor: 'rgba(0,0,0,0.9)',
+  justifyContent: 'center',
+  alignItems: 'center',
+  },
+  modalFoto: {
+  width: '100%',
+  height: '80%',
   },
 });
