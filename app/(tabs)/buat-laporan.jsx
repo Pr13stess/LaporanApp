@@ -16,6 +16,7 @@ export default function BuatLaporanScreen() {
   const [fotoProfil, setFotoProfil] = useState(null);
   const [alamat, setAlamat] = useState('');
   const [loadingLokasi, setLoadingLokasi] = useState(false);
+  const [sending, setSending] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -71,6 +72,8 @@ export default function BuatLaporanScreen() {
       Alert.alert('Gagal', 'Semua field harus diisi!');
       return;
     }
+    if (sending) return;
+    setSending(true);
 
     let fotoUrl = null;
 
@@ -90,6 +93,7 @@ export default function BuatLaporanScreen() {
 
       if (uploadError) {
         Alert.alert('Error', 'Gagal upload foto: ' + uploadError.message);
+        setSending(false);
         return;
       }
 
@@ -118,6 +122,7 @@ export default function BuatLaporanScreen() {
         { text: 'OK', onPress: () => router.back() }
       ]);
     }
+    setSending(false);
   };
 
   return (
@@ -180,9 +185,15 @@ export default function BuatLaporanScreen() {
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.btnKirim} onPress={kirimLaporan}>
+        <TouchableOpacity
+          style={[styles.btnKirim, sending && { opacity: 0.5 }]}
+          onPress={kirimLaporan}
+          disabled={sending}
+        >
           <Ionicons name="send-outline" size={18} color="#fff" />
-          <Text style={styles.btnKirimText}>Kirim Laporan</Text>
+          <Text style={styles.btnKirimText}>
+            {sending ? 'Mengirim...' : 'Kirim Laporan'}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
