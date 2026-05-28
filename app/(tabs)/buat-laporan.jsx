@@ -5,6 +5,8 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { supabase } from '../../lib/supabase';
+import { Animated } from 'react-native';
+import { useRef } from 'react';
 
 export default function BuatLaporanScreen() {
   const router = useRouter();
@@ -17,6 +19,26 @@ export default function BuatLaporanScreen() {
   const [alamat, setAlamat] = useState('');
   const [loadingLokasi, setLoadingLokasi] = useState(false);
   const [sending, setSending] = useState(false);
+  const [toast, setToast] = useState({ visible: false, message: '', success: true });
+
+  const toastAnim = useRef(new Animated.Value(-80)).current;
+
+  const showToast = (message, success = true) => {
+    setToast({ visible: true, message, success });
+    Animated.sequence([
+      Animated.spring(toastAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        speed: 20,
+      }),
+      Animated.delay(2500),
+      Animated.timing(toastAnim, {
+        toValue: -80,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => setToast(prev => ({ ...prev, visible: false })));
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -69,7 +91,7 @@ export default function BuatLaporanScreen() {
 
   const kirimLaporan = async () => {
     if (!judul || !detail) {
-      Alert.alert('Gagal', 'Semua field harus diisi!');
+      showToast('Semua field harus diisi!', false);
       return;
     }
     if (sending) return;
@@ -92,7 +114,7 @@ export default function BuatLaporanScreen() {
         .upload(fileName, formData);
 
       if (uploadError) {
-        Alert.alert('Error', 'Gagal upload foto: ' + uploadError.message);
+        showToast('Gagal upload foto', false);
         setSending(false);
         return;
       }
@@ -116,17 +138,34 @@ export default function BuatLaporanScreen() {
     });
 
     if (error) {
-      Alert.alert('Error', 'Gagal mengirim laporan: ' + error.message);
+      showToast('Gagal mengirim laporan', false);
     } else {
-      Alert.alert('Berhasil!', 'Laporan kamu berhasil dikirim!', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+      showToast('Laporan berhasil dikirim!', true);
+      setTimeout(() => router.back(), 1500);
     }
     setSending(false);
   };
 
   return (
     <View style={styles.container}>
+      {/* Toast Notification */}
+      {toast.visible && (
+        <Animated.View
+          style={[
+            styles.toast,
+            { transform: [{ translateY: toastAnim }] },
+            toast.success ? styles.toastSuccess : styles.toastError,
+          ]}
+        >
+          <Ionicons
+            name={toast.success ? 'checkmark-circle' : 'close-circle'}
+            size={20}
+            color="#fff"
+          />
+          <Text style={styles.toastText}>{toast.message}</Text>
+        </Animated.View>
+      )}
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.replace('/(tabs)/forum')}>
@@ -318,4 +357,32 @@ const styles = StyleSheet.create({
   color: '#333',
   backgroundColor: '#FAFAFA',
 },
+  toast: {
+    position: 'absolute',
+    top: 52,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 12,
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    zIndex: 999,
+  },
+  toastSuccess: {
+    backgroundColor: '#1565C0',
+  },
+  toastError: {
+    backgroundColor: '#D32F2F',
+  },
+  toastText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
+  },
 });
