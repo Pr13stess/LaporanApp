@@ -1,8 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { supabase } from '../lib/supabase';
+
+const TAGS = ['Jalan Rusak', 'Pohon Tumbang', 'Banjir'];
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -27,53 +29,84 @@ export default function LoginScreen() {
   };
 
   return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-        <Ionicons name="location" size={48} color="#fff" />
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
+
+      <View style={styles.hero}>
+        <View style={styles.circle1} />
+        <View style={styles.circle2} />
+        <View style={styles.iconRing}>
+          <Ionicons name="location" size={32} color="#fff" />
+        </View>
         <Text style={styles.appName}>LaporanApp</Text>
+        <Text style={styles.appSub}>Infrastruktur Kita, Tanggung Jawab Kita</Text>
       </View>
 
-      <View style={styles.form}>
-        <Text style={styles.formTitle}>Login</Text>
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Selamat datang!</Text>
+        <Text style={styles.cardSub}>Masuk untuk mulai melaporkan</Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#aaa"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
+        <View style={styles.tagRow}>
+          {TAGS.map((t) => (
+            <View key={t} style={styles.tag}>
+              <View style={styles.tagDot} />
+              <Text style={styles.tagText}>{t}</Text>
+            </View>
+          ))}
+        </View>
 
-        <View style={styles.inputRow}>
+        <Text style={styles.label}>EMAIL</Text>
+        <View style={styles.fieldBox}>
+          <Ionicons name="mail-outline" size={18} color="#1565C0" style={styles.fieldIcon} />
           <TextInput
-            style={[styles.input, { flex: 1, marginBottom: 0, borderWidth: 0 }]}
-            placeholder="Password"
+            style={styles.fieldInput}
+            placeholder="email@contoh.com"
+            placeholderTextColor="#aaa"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </View>
+
+        <Text style={styles.label}>PASSWORD</Text>
+        <View style={styles.fieldBox}>
+          <Ionicons name="lock-closed-outline" size={18} color="#1565C0" style={styles.fieldIcon} />
+          <TextInput
+            style={[styles.fieldInput, { flex: 1 }]}
+            placeholder="••••••••"
             placeholderTextColor="#aaa"
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
           />
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <Ionicons
-              name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-              size={22}
-              color="#aaa"
-            />
+            <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="#aaa" />
           </TouchableOpacity>
         </View>
 
+        <TouchableOpacity style={styles.forgotWrap}>
+          <Text style={styles.forgotText}>Lupa password?</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity
-          style={[styles.btnKirim, loading && { opacity: 0.7 }]}
+          style={[styles.btnLogin, loading && { opacity: 0.7 }]}
           onPress={handleLogin}
           disabled={loading}
         >
-          <Text style={styles.btnKirimText}>{loading ? 'Loading...' : 'Login'}</Text>
+          <Text style={styles.btnLoginText}>{loading ? 'Loading...' : 'Masuk Sekarang'}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push('/register')} style={styles.registerLink}>
-          <Text style={styles.registerText}>Belum punya akun? <Text style={styles.registerTextBold}>Daftar</Text></Text>
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>atau</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        <TouchableOpacity onPress={() => router.push('/register')} style={styles.registerRow}>
+          <Text style={styles.registerText}>
+            Belum punya akun? <Text style={styles.registerBold}>Daftar sekarang</Text>
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -81,84 +114,68 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#1565C0',
+  container: { flex: 1, backgroundColor: '#1565C0' },
+
+  hero: {
+    paddingHorizontal: 28, paddingTop: 56, paddingBottom: 48, overflow: 'hidden',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 50,
-    paddingBottom: 12,
-    gap: 10,
+  circle1: {
+    position: 'absolute', width: 200, height: 200, borderRadius: 100,
+    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.12)', top: -50, right: -50,
   },
-header: {
-  alignItems: 'center',
-  justifyContent: 'center',
-  paddingTop: 60,
-  paddingBottom: 20,
-  gap: 8,
-},
-appName: {
-  color: '#fff',
-  fontWeight: 'bold',
-  fontSize: 24,
-  letterSpacing: 1,
-},
-  form: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    padding: 28,
+  circle2: {
+    position: 'absolute', width: 110, height: 110, borderRadius: 55,
+    backgroundColor: 'rgba(255,255,255,0.06)', bottom: -20, left: -20,
   },
-  formTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1565C0',
-    marginBottom: 28,
-    textAlign: 'center',
+  iconRing: {
+    width: 64, height: 64, borderRadius: 32,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center', justifyContent: 'center', marginBottom: 14,
   },
-  input: {
-    borderWidth: 1.5,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 14,
-    fontSize: 14,
-    color: '#333',
+  appName: { color: '#fff', fontSize: 24, fontWeight: '700', letterSpacing: 0.4, marginBottom: 6 },
+  appSub: { color: 'rgba(255,255,255,0.6)', fontSize: 12, letterSpacing: 0.5, textTransform: 'uppercase' },
+
+  card: {
+    flex: 1, backgroundColor: '#fff',
+    borderTopLeftRadius: 28, borderTopRightRadius: 28,
+    paddingHorizontal: 24, paddingTop: 28, paddingBottom: 32,
   },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    marginBottom: 24,
+  cardTitle: { fontSize: 22, fontWeight: '700', color: '#1565C0', marginBottom: 4 },
+  cardSub: { fontSize: 13, color: '#888', marginBottom: 20 },
+
+  tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 22 },
+  tag: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: '#EAF4FB', borderRadius: 20,
+    paddingVertical: 5, paddingHorizontal: 12,
   },
-  btnKirim: {
-    backgroundColor: '#FFA500',
-    borderRadius: 20,
-    padding: 14,
-    alignItems: 'center',
-    marginBottom: 16,
+  tagDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#FFA500' },
+  tagText: { fontSize: 11, fontWeight: '600', color: '#1565C0' },
+
+  label: { fontSize: 11, fontWeight: '600', color: '#555', letterSpacing: 0.6, marginBottom: 6 },
+  fieldBox: {
+    flexDirection: 'row', alignItems: 'center',
+    borderWidth: 1.5, borderColor: '#C9E5F5',
+    borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11,
+    backgroundColor: '#F4FAFD', marginBottom: 16,
   },
-  btnKirimText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
+  fieldIcon: { marginRight: 10 },
+  fieldInput: { flex: 1, fontSize: 14, color: '#333' },
+
+  forgotWrap: { alignItems: 'flex-end', marginTop: -6, marginBottom: 20 },
+  forgotText: { fontSize: 12, color: '#1565C0', fontWeight: '500' },
+
+  btnLogin: {
+    backgroundColor: '#FFA500', borderRadius: 20,
+    paddingVertical: 14, alignItems: 'center', marginBottom: 18,
   },
-  registerLink: {
-    alignItems: 'center',
-  },
-  registerText: {
-    color: '#888',
-    fontSize: 14,
-  },
-  registerTextBold: {
-    color: '#1565C0',
-    fontWeight: 'bold',
-  },
+  btnLoginText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+
+  divider: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: '#EEE' },
+  dividerText: { fontSize: 12, color: '#BBB' },
+
+  registerRow: { alignItems: 'center' },
+  registerText: { fontSize: 13, color: '#888' },
+  registerBold: { color: '#1565C0', fontWeight: '700' },
 });
