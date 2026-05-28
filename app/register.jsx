@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { supabase } from '../lib/supabase';
 
 export default function RegisterScreen() {
@@ -35,60 +35,82 @@ export default function RegisterScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.avatar} />
-        <Text style={styles.headerTitle}>Halo, King!</Text>
+      <StatusBar barStyle="light-content" />
+
+      <View style={styles.hero}>
+        <View style={styles.circle1} />
+        <View style={styles.circle2} />
+        <View style={styles.iconRing}>
+          <Ionicons name="person-add" size={32} color="#fff" />
+        </View>
+        <Text style={styles.appName}>Buat Akun</Text>
+        <Text style={styles.appSub}>Bergabung dan mulai laporkan masalah sekitarmu</Text>
       </View>
 
-      <View style={styles.form}>
-        <Text style={styles.formTitle}>Daftar</Text>
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Daftar</Text>
+        <Text style={styles.cardSub}>Isi data diri kamu untuk memulai</Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Nama Lengkap"
-          placeholderTextColor="#aaa"
-          value={nama}
-          onChangeText={setNama}
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#aaa"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-
-        <View style={styles.inputRow}>
+        <Text style={styles.label}>NAMA LENGKAP</Text>
+        <View style={styles.fieldBox}>
+          <Ionicons name="person-outline" size={18} color="#1565C0" style={styles.fieldIcon} />
           <TextInput
-            style={[styles.input, { flex: 1, marginBottom: 0, borderWidth: 0 }]}
-            placeholder="Password"
+            style={styles.fieldInput}
+            placeholder="Nama lengkap kamu"
+            placeholderTextColor="#aaa"
+            value={nama}
+            onChangeText={setNama}
+          />
+        </View>
+
+        <Text style={styles.label}>EMAIL</Text>
+        <View style={styles.fieldBox}>
+          <Ionicons name="mail-outline" size={18} color="#1565C0" style={styles.fieldIcon} />
+          <TextInput
+            style={styles.fieldInput}
+            placeholder="email@contoh.com"
+            placeholderTextColor="#aaa"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </View>
+
+        <Text style={styles.label}>PASSWORD</Text>
+        <View style={styles.fieldBox}>
+          <Ionicons name="lock-closed-outline" size={18} color="#1565C0" style={styles.fieldIcon} />
+          <TextInput
+            style={[styles.fieldInput, { flex: 1 }]}
+            placeholder="••••••••"
             placeholderTextColor="#aaa"
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
           />
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <Ionicons
-              name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-              size={22}
-              color="#aaa"
-            />
+            <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="#aaa" />
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity
-          style={[styles.btnKirim, loading && { opacity: 0.7 }]}
+          style={[styles.btnDaftar, loading && { opacity: 0.7 }]}
           onPress={handleRegister}
           disabled={loading}
         >
-          <Text style={styles.btnKirimText}>{loading ? 'Loading...' : 'Daftar'}</Text>
+          <Text style={styles.btnDaftarText}>{loading ? 'Loading...' : 'Buat Akun'}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push('/login')} style={styles.loginLink}>
-          <Text style={styles.loginText}>Sudah punya akun? <Text style={styles.loginTextBold}>Login</Text></Text>
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>atau</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        <TouchableOpacity onPress={() => router.push('/login')} style={styles.loginRow}>
+          <Text style={styles.loginText}>
+            Sudah punya akun? <Text style={styles.loginBold}>Masuk sekarang</Text>
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -96,83 +118,56 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#1565C0',
+  container: { flex: 1, backgroundColor: '#1565C0' },
+
+  hero: {
+    paddingHorizontal: 28, paddingTop: 56, paddingBottom: 48, overflow: 'hidden',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 50,
-    paddingBottom: 12,
-    gap: 10,
+  circle1: {
+    position: 'absolute', width: 200, height: 200, borderRadius: 100,
+    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.12)', top: -50, right: -50,
   },
-  avatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: '#90CAF9',
+  circle2: {
+    position: 'absolute', width: 110, height: 110, borderRadius: 55,
+    backgroundColor: 'rgba(255,255,255,0.06)', bottom: -20, left: -20,
   },
-  headerTitle: {
-    flex: 1,
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 18,
+  iconRing: {
+    width: 64, height: 64, borderRadius: 32,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center', justifyContent: 'center', marginBottom: 14,
   },
-  form: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    padding: 28,
+  appName: { color: '#fff', fontSize: 24, fontWeight: '700', letterSpacing: 0.4, marginBottom: 6 },
+  appSub: { color: 'rgba(255,255,255,0.6)', fontSize: 12, letterSpacing: 0.5 },
+
+  card: {
+    flex: 1, backgroundColor: '#fff',
+    borderTopLeftRadius: 28, borderTopRightRadius: 28,
+    paddingHorizontal: 24, paddingTop: 28, paddingBottom: 32,
   },
-  formTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1565C0',
-    marginBottom: 28,
-    textAlign: 'center',
+  cardTitle: { fontSize: 22, fontWeight: '700', color: '#1565C0', marginBottom: 4 },
+  cardSub: { fontSize: 13, color: '#888', marginBottom: 20 },
+
+  label: { fontSize: 11, fontWeight: '600', color: '#555', letterSpacing: 0.6, marginBottom: 6 },
+  fieldBox: {
+    flexDirection: 'row', alignItems: 'center',
+    borderWidth: 1.5, borderColor: '#C9E5F5',
+    borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11,
+    backgroundColor: '#F4FAFD', marginBottom: 16,
   },
-  input: {
-    borderWidth: 1.5,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 14,
-    fontSize: 14,
-    color: '#333',
+  fieldIcon: { marginRight: 10 },
+  fieldInput: { flex: 1, fontSize: 14, color: '#333' },
+
+  btnDaftar: {
+    backgroundColor: '#FFA500', borderRadius: 20,
+    paddingVertical: 14, alignItems: 'center', marginBottom: 18, marginTop: 4,
   },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    marginBottom: 24,
-  },
-  btnKirim: {
-    backgroundColor: '#FFA500',
-    borderRadius: 20,
-    padding: 14,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  btnKirimText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  loginLink: {
-    alignItems: 'center',
-  },
-  loginText: {
-    color: '#888',
-    fontSize: 14,
-  },
-  loginTextBold: {
-    color: '#1565C0',
-    fontWeight: 'bold',
-  },
+  btnDaftarText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+
+  divider: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: '#EEE' },
+  dividerText: { fontSize: 12, color: '#BBB' },
+
+  loginRow: { alignItems: 'center' },
+  loginText: { fontSize: 13, color: '#888' },
+  loginBold: { color: '#1565C0', fontWeight: '700' },
 });
