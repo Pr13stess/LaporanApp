@@ -52,24 +52,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        {foto ? (
-          <Image source={{ uri: foto }} style={styles.avatar} />
-        ) : (
-          <View style={styles.avatar} />
-        )}
-        <View style={styles.headerText}>
-          <Text style={styles.halo}>Halo, {nama}!</Text>
-          <Text style={styles.pingLabel}>Ping Location:</Text>
-          <Text style={styles.lokasi} numberOfLines={1}>📍 {alamat}</Text>
-        </View>
-        <TouchableOpacity onPress={() => router.push('/settings')}>
-          <Ionicons name="settings-sharp" size={26} color="#FFA500" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Peta */}
+      {/* Peta full screen */}
       <MapView
         style={styles.map}
         region={{
@@ -79,19 +62,39 @@ export default function HomeScreen() {
           longitudeDelta: 0.01,
         }}
       >
-        <Marker
-          coordinate={koordinat}
-          title="Lokasi Kamu"
-        />
+        <Marker coordinate={koordinat} title="Lokasi Kamu" />
       </MapView>
+
+      {/* Header overlay di atas map */}
+      <View style={styles.header}>
+        {foto ? (
+          <Image source={{ uri: foto }} style={styles.avatar} />
+        ) : (
+          <View style={styles.avatar} />
+        )}
+        <View style={styles.headerText}>
+          <Text style={styles.halo}>Halo, {nama}!</Text>
+          <View style={styles.lokasiRow}>
+            <Ionicons name="location" size={12} color="#FFA500" />
+            <Text style={styles.lokasi} numberOfLines={1}>{alamat}</Text>
+          </View>
+        </View>
+        <TouchableOpacity style={styles.settingsBtn} onPress={() => router.push('/settings')}>
+          <Ionicons name="settings-sharp" size={20} color="#FFA500" />
+        </TouchableOpacity>
+      </View>
 
       {/* Bottom Bar */}
       <View style={styles.bottomBar}>
-        <Text style={styles.bottomText}>Menemukan Masalah?</Text>
+        <View style={styles.bottomContent}>
+          <Text style={styles.bottomLabel}>Menemukan Masalah?</Text>
+          <Text style={styles.bottomSub}>Laporkan kepada kami</Text>
+        </View>
         <TouchableOpacity
           style={styles.btnLaporan}
           onPress={() => router.push('/buat-laporan')}
         >
+          <Ionicons name="add-circle-outline" size={18} color="#fff" />
           <Text style={styles.btnLaporanText}>Buat Laporan</Text>
         </TouchableOpacity>
       </View>
@@ -102,64 +105,103 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1565C0',
   },
+  map: {
+    flex: 1,
+  },
+
+  // Header overlay
   header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 50,
-    paddingBottom: 12,
-    gap: 10,
+    paddingTop: 52,
+    paddingBottom: 16,
+    gap: 12,
+    backgroundColor: 'rgba(21, 101, 192, 0.92)',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   avatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     backgroundColor: '#90CAF9',
     overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: '#fff',
   },
   headerText: {
     flex: 1,
   },
   halo: {
-    color: '#FFA500',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  pingLabel: {
     color: '#fff',
-    fontSize: 11,
+    fontWeight: 'bold',
+    fontSize: 17,
+    marginBottom: 2,
+  },
+  lokasiRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   lokasi: {
-    color: '#fff',
+    color: '#E3F2FD',
     fontSize: 11,
-  },
-  map: {
     flex: 1,
   },
+  settingsBtn: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    padding: 8,
+    borderRadius: 12,
+  },
+
+  // Bottom bar
   bottomBar: {
-    backgroundColor: '#1565C0',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingVertical: 16,
+    paddingBottom: 28,
+    backgroundColor: 'rgba(21, 101, 192, 0.95)',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
-  bottomText: {
+  bottomContent: {
+    flex: 1,
+  },
+  bottomLabel: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 14,
+    fontSize: 15,
+  },
+  bottomSub: {
+    color: '#90CAF9',
+    fontSize: 11,
+    marginTop: 2,
   },
   btnLaporan: {
     backgroundColor: '#FFA500',
-    paddingHorizontal: 24,
-    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
     borderRadius: 20,
+    elevation: 3,
   },
   btnLaporanText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 14,
   },
 });
