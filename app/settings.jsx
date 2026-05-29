@@ -23,7 +23,14 @@ export default function SettingsScreen() {
     if (user) {
       setEmail(user.email);
       setNama(user.user_metadata?.nama || '');
-      setFoto(user.user_metadata?.foto || null);
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('foto_profil')
+        .eq('id', user.id)
+        .single();
+
+      setFoto(profile?.foto_profil || user.user_metadata?.foto || null);
     }
   };
 
@@ -42,25 +49,49 @@ export default function SettingsScreen() {
   const handleSimpan = async () => {
     setLoading(true);
 
-    const updateData = {
-      email,
-      data: { nama, foto },
-    };
+    let fotoUrl = foto;
 
-    if (password) {
-      updateData.password = password;
+    if (foto && foto.startsWith('file://')) {
+      const ext = foto.split('.').pop();
+      const fileName = `avatar_${Date.now()}.${ext}`;
+      const formData = new FormData();
+      formData.append('file', { uri: foto, name: fileName, type: `image/${ext}` });
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, formData);
+
+      if (!uploadError) {
+        const { data: urlData } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(fileName);
+        fotoUrl = urlData.publicUrl;
+      }
     }
 
-    const { error } = await supabase.auth.updateUser(updateData);
-    setLoading(false);
+    const updateData = { email, data: { nama, foto: fotoUrl } };
+    if (password) updateData.password = password;
 
-    if (error) {
-      Alert.alert('Gagal', error.message);
-    } else {
-      Alert.alert('Berhasil!', 'Profil berhasil diperbarui!');
-      setPassword('');
-    }
-  };
+    const { error: authError } = await supabase.auth.updateUser(updateData);
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    await supabase
+      .from('profiles')
+      .update({ nama, foto_profil: fotoUrl })
+      .eq('id', user.id);
+  }
+
+  setLoading(false);
+
+  if (authError) {
+    Alert.alert('Gagal', authError.message);
+  } else {
+    Alert.alert('Berhasil!', 'Profil berhasil diperbarui!');
+    setPassword('');
+    setFoto(fotoUrl);
+  }
+};
 
   const handleLogout = async () => {
     Alert.alert('Logout', 'Yakin ingin keluar?', [

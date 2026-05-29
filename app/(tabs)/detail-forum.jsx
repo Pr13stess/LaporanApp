@@ -17,6 +17,7 @@ export default function DetailForumScreen() {
   const [isLiked, setIsLiked] = useState(false);
   const [likedKomentarIds, setLikedKomentarIds] = useState(new Set());
   const [refreshing, setRefreshing] = useState(false);
+  const [userId, setUserId] = useState(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -36,13 +37,14 @@ export default function DetailForumScreen() {
     if (user) {
       setNama(user.user_metadata?.nama || 'User');
       setFoto(user.user_metadata?.foto || null);
+      setUserId(user.id); // tambah state userId
     }
   };
 
   const fetchDetail = async () => {
     const { data } = await supabase
       .from('laporan')
-      .select('*')
+      .select('*, profiles(nama, foto_profil)')
       .eq('id', id)
       .single();
     setLaporan(data);
@@ -51,29 +53,31 @@ export default function DetailForumScreen() {
   const fetchKomentar = async () => {
     const { data } = await supabase
       .from('komentar')
-      .select('*')
+      .select('*, profiles(nama, foto_profil), reply:reply_to(profiles(nama))')
       .eq('laporan_id', id)
       .order('created_at', { ascending: true });
     if (data) setKomentar(data);
   };
 
   const kirimKomentar = async () => {
-  if (!inputKomentar.trim()) return;
-  const { error } = await supabase.from('komentar').insert({
-    laporan_id: id,
-    nama,
-    foto_profil: foto, 
-    isi: inputKomentar.trim(),
-    reply_to: replyTo?.id || null,
-    reply_to_nama: replyTo?.nama || null,
-  });
-  if (error) {
-    Alert.alert('Gagal', "Gagal mengirim komentar!");
-  } else {
-    setInputKomentar('');
-    setReplyTo(null);
-    fetchKomentar();
-  }
+    if (!inputKomentar.trim()) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { error } = await supabase.from('komentar').insert({
+      laporan_id: id,
+      user_id: user.id,
+      isi: inputKomentar.trim(),
+      reply_to: replyTo?.id || null,
+    });
+
+    if (error) {
+      Alert.alert('Gagal', 'Gagal mengirim komentar!');
+    } else {
+      setInputKomentar('');
+      setReplyTo(null);
+      fetchKomentar();
+    }
   };
 
   const handleUpvoteKomentar = async (item) => {
@@ -189,118 +193,122 @@ export default function DetailForumScreen() {
               />
             }>
               
-            {/* Card Detail */}
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                {laporan.foto_profil ? (
-                  <Image source={{ uri: laporan.foto_profil }} style={styles.cardAvatar} />
-                ) : (
-                  <View style={styles.cardAvatar} />
-                )}
-                <View>
-                  <Text style={styles.cardNama}>{laporan.nama}</Text>
-                  <Text style={styles.cardTanggal}>{laporan.tanggal}</Text>
-                </View>
-              </View>
-
-              <Text style={styles.judul}>{laporan.judul}</Text>
-              <Text style={styles.deskripsi}>{laporan.deskripsi}</Text>
-
-              {laporan.alamat ? (
-                <Text style={styles.alamat}>📍 {laporan.alamat}</Text>
-              ) : null}
-
-              {laporan.foto && (
-                <TouchableOpacity onPress={() => setFotoFullscreen(laporan.foto)}>
-                  <View style={styles.fotoBox}>
-                    <Image source={{ uri: laporan.foto }} style={styles.foto} />
-                  </View>
-                </TouchableOpacity>
+          {/* Card Detail */}
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              {laporan.profiles?.foto_profil ? (
+                <Image source={{ uri: laporan.profiles.foto_profil }} style={styles.cardAvatar} />
+              ) : (
+                <View style={styles.cardAvatar} />
               )}
-
-              <View style={styles.bottomRow}>
-                <View style={[styles.statusBadge, {
-                  backgroundColor:
-                    laporan.status === 'pending' ? '#D32F2F' :
-                    laporan.status === 'proses' ? '#1565C0' : '#2E7D32'
-                }]}>
-                  <Text style={styles.statusText}>{laporan.status}</Text>
-                </View>
-
-                <View style={styles.actionRow}>
-                  <TouchableOpacity
-                    style={[styles.upvoteBtn, isLiked && styles.upvoteBtnActive]}
-                    onPress={handleUpvote}
-                  >
-                    <Ionicons
-                      name={isLiked ? "thumbs-up" : "thumbs-up-outline"}
-                      size={18}
-                      color={isLiked ? "#1565C0" : "#555"}
-                    />
-                    <Text style={[styles.upvoteText, isLiked && styles.upvoteTextActive]}>
-                      {laporan.upvotes || 0}
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity style={styles.shareBtn}>
-                    <Ionicons name="share-social-outline" size={18} color="#555" />
-                    <Text style={styles.shareBtnText}>Share</Text>
-                  </TouchableOpacity>
-                </View>
+              <View>
+                <Text style={styles.cardNama}>{laporan.profiles?.nama || 'User'}</Text>
+                <Text style={styles.cardTanggal}>{laporan.tanggal}</Text>
               </View>
             </View>
 
-            {/* Komentar */}
-            <Text style={styles.komentarTitle}>Komentar ({komentar.length})</Text>
-            {komentar.length === 0 ? (
-              <Text style={styles.komentarEmpty}>Belum ada komentar. Jadilah yang pertama!</Text>
-            ) : (
-              komentar.map((item) => (
-                <View key={item.id} style={[styles.komentarItem, item.reply_to && styles.komentarReply]}>
-                  {item.foto_profil ? (
-                      <Image source={{ uri: item.foto_profil }} style={styles.komentarAvatar} />
-                    ) : (
-                      <View style={styles.komentarAvatar} />
-                    )}
-                  <View style={styles.komentarBubble}>
-                    {item.reply_to_nama && (
-                      <Text style={styles.replyLabel}>↩ Membalas {item.reply_to_nama}</Text>
-                    )}
-                    <Text style={styles.komentarNama}>{item.nama}</Text>
-                    <Text style={styles.komentarTeks}>{item.isi}</Text>
-                    <View style={styles.komentarActions}>
-                      <TouchableOpacity
-                        style={styles.replyBtn}
-                        onPress={() => setReplyTo(item)}
-                      >
-                        <Ionicons name="return-down-forward-outline" size={14} color="#1565C0" />
-                        <Text style={styles.replyBtnText}>Balas</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.upvoteKomentarBtn}
-                        onPress={() => handleUpvoteKomentar(item)}
-                      >
-                        <Ionicons name="arrow-up" size={14} color="#1565C0" />
-                        <Text style={styles.upvoteKomentarText}>{item.upvotes || 0}</Text>
-                      </TouchableOpacity>
-                    </View>
+            <Text style={styles.judul}>{laporan.judul}</Text>
+            <Text style={styles.deskripsi}>{laporan.deskripsi}</Text>
+
+            {laporan.alamat ? (
+              <Text style={styles.alamat}>📍 {laporan.alamat}</Text>
+            ) : null}
+
+            {laporan.foto && (
+              <TouchableOpacity onPress={() => setFotoFullscreen(laporan.foto)}>
+                <View style={styles.fotoBox}>
+                  <Image source={{ uri: laporan.foto }} style={styles.foto} />
+                </View>
+              </TouchableOpacity>
+            )}
+
+            <View style={styles.bottomRow}>
+              <View style={[styles.statusBadge, {
+                backgroundColor:
+                  laporan.status === 'pending' ? '#D32F2F' :
+                  laporan.status === 'proses' ? '#1565C0' : '#2E7D32'
+              }]}>
+                <Text style={styles.statusText}>{laporan.status}</Text>
+              </View>
+
+              <View style={styles.actionRow}>
+                <TouchableOpacity
+                  style={[styles.upvoteBtn, isLiked && styles.upvoteBtnActive]}
+                  onPress={handleUpvote}
+                >
+                  <Ionicons
+                    name={isLiked ? "thumbs-up" : "thumbs-up-outline"}
+                    size={18}
+                    color={isLiked ? "#1565C0" : "#555"}
+                  />
+                  <Text style={[styles.upvoteText, isLiked && styles.upvoteTextActive]}>
+                    {laporan.upvotes || 0}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.shareBtn}>
+                  <Ionicons name="share-social-outline" size={18} color="#555" />
+                  <Text style={styles.shareBtnText}>Share</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+
+          {/* Komentar */}
+          <Text style={styles.komentarTitle}>Komentar ({komentar.length})</Text>
+          {komentar.length === 0 ? (
+            <Text style={styles.komentarEmpty}>Belum ada komentar. Jadilah yang pertama!</Text>
+          ) : (
+            komentar.map((item) => (
+              <View key={item.id} style={[styles.komentarItem, item.reply_to && styles.komentarReply]}>
+                {item.profiles?.foto_profil ? (
+                  <Image source={{ uri: item.profiles.foto_profil }} style={styles.komentarAvatar} />
+                ) : (
+                  <View style={styles.komentarAvatar} />
+                )}
+                <View style={styles.komentarBubble}>
+                  {item.reply_to && (
+                    <Text style={styles.replyLabel}>
+                      ↩ Membalas {item.reply?.profiles?.nama || 'User'}
+                    </Text>
+                  )}
+                  <Text style={styles.komentarNama}>{item.profiles?.nama || 'User'}</Text>
+                  <Text style={styles.komentarTeks}>{item.isi}</Text>
+                  <View style={styles.komentarActions}>
+                    <TouchableOpacity
+                      style={styles.replyBtn}
+                      onPress={() => setReplyTo(item)}
+                    >
+                      <Ionicons name="return-down-forward-outline" size={14} color="#1565C0" />
+                      <Text style={styles.replyBtnText}>Balas</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.upvoteKomentarBtn}
+                      onPress={() => handleUpvoteKomentar(item)}
+                    >
+                      <Ionicons name="arrow-up" size={14} color="#1565C0" />
+                      <Text style={styles.upvoteKomentarText}>{item.upvotes || 0}</Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
-              ))
-            )}
-            <View style={{ height: 20 }} />
+              </View>
+            ))
+          )}
+          <View style={{ height: 20 }} />
           </ScrollView>
 
           {/* Reply indicator */}
           {replyTo && (
             <View style={styles.replyIndicator}>
-              <Text style={styles.replyIndicatorText}>↩ Membalas {replyTo.nama}</Text>
+              <Text style={styles.replyIndicatorText}>
+                ↩ Membalas {replyTo.profiles?.nama || 'User'}
+              </Text>
               <TouchableOpacity onPress={() => setReplyTo(null)}>
                 <Ionicons name="close-circle" size={18} color="#888" />
               </TouchableOpacity>
             </View>
           )}
-
+          
           {/* Input Komentar */}
           <View style={styles.inputKomentarRow}>
             <TextInput

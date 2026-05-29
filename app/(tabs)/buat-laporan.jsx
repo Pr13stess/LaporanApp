@@ -14,7 +14,6 @@ export default function BuatLaporanScreen() {
   const [tanggal] = useState(new Date().toISOString().split('T')[0]);
   const [detail, setDetail] = useState('');
   const [foto, setFoto] = useState(null);
-  const [nama, setNama] = useState('');
   const [fotoProfil, setFotoProfil] = useState(null);
   const [alamat, setAlamat] = useState('');
   const [loadingLokasi, setLoadingLokasi] = useState(false);
@@ -50,7 +49,6 @@ export default function BuatLaporanScreen() {
   const fetchUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      setNama(user.user_metadata?.nama || 'User');
       setFotoProfil(user.user_metadata?.foto || null);
     }
   };
@@ -97,17 +95,19 @@ export default function BuatLaporanScreen() {
     if (sending) return;
     setSending(true);
 
-    let fotoUrl = null;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      showToast('Sesi habis, silakan login ulang', false);
+      setSending(false);
+      return;
+    }
 
+    let fotoUrl = null;
     if (foto) {
       const ext = foto.split('.').pop();
       const fileName = `${Date.now()}.${ext}`;
       const formData = new FormData();
-      formData.append('file', {
-        uri: foto,
-        name: fileName,
-        type: `image/${ext}`,
-      });
+      formData.append('file', { uri: foto, name: fileName, type: `image/${ext}` });
 
       const { error: uploadError } = await supabase.storage
         .from('laporan-foto')
@@ -122,7 +122,6 @@ export default function BuatLaporanScreen() {
       const { data: urlData } = supabase.storage
         .from('laporan-foto')
         .getPublicUrl(fileName);
-
       fotoUrl = urlData.publicUrl;
     }
 
@@ -130,12 +129,13 @@ export default function BuatLaporanScreen() {
       judul,
       tanggal,
       deskripsi: detail,
-      nama,
+      user_id: user.id,
       status: 'pending',
       foto: fotoUrl,
-      foto_profil: fotoProfil,
       alamat,
     });
+    
+    console.log('insert error:', error);
 
     if (error) {
       showToast('Gagal mengirim laporan', false);

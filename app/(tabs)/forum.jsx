@@ -37,19 +37,15 @@ export default function ForumScreen() {
 
   const fetchLaporan = async () => {
     setLoading(true);
-    let query = supabase.from('laporan').select('*');
+    let query = supabase
+      .from('laporan')
+      .select('*, profiles(nama, foto_profil)');
 
-    if (sortBy === 'terbaru') {
-      query = query.order('created_at', { ascending: false });
-    } else if (sortBy === 'terlama') {
-      query = query.order('created_at', { ascending: true });
-    } else if (sortBy === 'populer') {
-      query = query.order('upvotes', { ascending: false });
-    } else if (sortBy === 'pending') {
-      query = query.eq('status', 'pending').order('created_at', { ascending: false });
-    } else if (sortBy === 'selesai') {
-      query = query.eq('status', 'selesai').order('created_at', { ascending: false });
-    }
+    if (sortBy === 'terbaru') query = query.order('created_at', { ascending: false });
+    else if (sortBy === 'terlama') query = query.order('created_at', { ascending: true });
+    else if (sortBy === 'populer') query = query.order('upvotes', { ascending: false });
+    else if (sortBy === 'pending') query = query.eq('status', 'pending').order('created_at', { ascending: false });
+    else if (sortBy === 'selesai') query = query.eq('status', 'selesai').order('created_at', { ascending: false });
 
     const { data, error } = await query;
     if (!error) setLaporan(data);
@@ -164,13 +160,13 @@ export default function ForumScreen() {
               >
                 {/* Header Card */}
                 <View style={styles.cardHeader}>
-                  {item.foto_profil ? (
-                    <Image source={{ uri: item.foto_profil }} style={styles.cardAvatar} />
+                  {item.profiles?.foto_profil ? (
+                    <Image source={{ uri: item.profiles.foto_profil }} style={styles.cardAvatar} />
                   ) : (
                     <View style={styles.cardAvatar} />
                   )}
                   <View style={styles.cardInfo}>
-                    <Text style={styles.cardNama}>{item.nama}</Text>
+                    <Text style={styles.cardNama}>{item.profiles?.nama || 'User'}</Text>
                     <Text style={styles.cardTanggal}>{item.tanggal}</Text>
                   </View>
                   <View style={[styles.statusBadge, {
