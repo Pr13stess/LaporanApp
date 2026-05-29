@@ -37,6 +37,8 @@ export default function ForumScreen() {
 
   const fetchLaporan = async () => {
     setLoading(true);
+    const { data: { user } } = await supabase.auth.getUser();
+
     let query = supabase
       .from('laporan')
       .select('*, profiles(nama, foto_profil)');
@@ -49,43 +51,48 @@ export default function ForumScreen() {
 
     const { data, error } = await query;
     if (!error) setLaporan(data);
+
+    // Fetch like status dari database
+    if (user && data?.length > 0) {
+      const { data: likesData } = await supabase
+        .from('laporan_likes')
+        .select('laporan_id')
+        .eq('user_id', user.id);
+      if (likesData) {
+        setLikedIds(new Set(likesData.map(l => l.laporan_id)));
+      }
+    }
+
     setLoading(false);
   };
 
   const handleUpvote = async (item) => {
-  const isLiked = likedIds.has(item.id);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const isLiked = likedIds.has(item.id);
+    const newIsLiked = !isLiked;
 
     // Optimistic update
     setLikedIds(prev => {
       const s = new Set(prev);
-      isLiked ? s.delete(item.id) : s.add(item.id);
+      newIsLiked ? s.add(item.id) : s.delete(item.id);
       return s;
     });
     setLaporan(prev =>
       prev.map(l => l.id === item.id
-        ? { ...l, upvotes: (l.upvotes || 0) + (isLiked ? -1 : 1) }
+        ? { ...l, upvotes: (l.upvotes || 0) + (newIsLiked ? 1 : -1) }
         : l
       )
     );
 
-    const { error } = await supabase
-      .from('laporan')
-      .update({ upvotes: (item.upvotes || 0) + (isLiked ? -1 : 1) })
-      .eq('id', item.id);
-
-    // Rollback kalau gagal
-    if (error) {
-      setLikedIds(prev => {
-        const s = new Set(prev);
-        isLiked ? s.add(item.id) : s.delete(item.id);
-        return s;
-      });
-      setLaporan(prev =>
-        prev.map(l => l.id === item.id
-          ? { ...l, upvotes: (l.upvotes || 0) + (isLiked ? 1 : -1) }
-          : l
-        )
-      );
+    if (newIsLiked) {
+      await supabase.from('laporan_likes').insert({ user_id: user.id, laporan_id: item.id });
+      await supabase.rpc('increment_laporan_upvotes', { laporan_id: item.id });
+    } else {
+      await supabase.from('laporan_likes').delete()
+        .eq('user_id', user.id).eq('laporan_id', item.id);
+      await supabase.rpc('decrement_laporan_upvotes', { laporan_id: item.id });
     }
   };
 
