@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, Image, Share, StyleSheet, Text, TouchableOpacity, View, RefreshControl } from 'react-native';
 import { supabase } from '../../lib/supabase';
 
 export default function ForumScreen() {
@@ -13,6 +13,7 @@ export default function ForumScreen() {
   const [foto, setFoto] = useState(null);
   const [likedIds, setLikedIds] = useState(new Set());
   const [showSort, setShowSort] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -20,6 +21,11 @@ export default function ForumScreen() {
       fetchLaporan();
     }, [sortBy])
   );
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchLaporan();
+    setRefreshing(false);
+  }, [sortBy]);
 
   const fetchUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -143,6 +149,14 @@ export default function ForumScreen() {
             keyExtractor={(item) => item.id}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 20 }}
+              refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={['#1565C0']}       
+                tintColor="#1565C0"          
+              />
+            }
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={styles.card}

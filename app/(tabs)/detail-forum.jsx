@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Alert, Image, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, RefreshControl } from 'react-native';
 import { supabase } from '../../lib/supabase';
 
 export default function DetailForumScreen() {
@@ -16,6 +16,7 @@ export default function DetailForumScreen() {
   const [fotoFullscreen, setFotoFullscreen] = useState(null);
   const [isLiked, setIsLiked] = useState(false);
   const [likedKomentarIds, setLikedKomentarIds] = useState(new Set());
+  const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -24,6 +25,11 @@ export default function DetailForumScreen() {
       fetchKomentar();
     }, [id])
   );
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.all([fetchDetail(), fetchKomentar()]);
+    setRefreshing(false);
+  }, [id]);
 
   const fetchUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -172,7 +178,17 @@ export default function DetailForumScreen() {
             <Text style={styles.topBarTitle}>Laporan</Text>
           </View> */}
 
-          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <ScrollView showsVerticalScrollIndicator={false} 
+            keyboardShouldPersistTaps="handled"
+            refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#1565C0']}
+              tintColor="#1565C0"
+              />
+            }>
+              
             {/* Card Detail */}
             <View style={styles.card}>
               <View style={styles.cardHeader}>
