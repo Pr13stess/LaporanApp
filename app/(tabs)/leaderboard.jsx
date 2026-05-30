@@ -38,21 +38,32 @@ export default function LeaderboardScreen() {
   const fetchLeaderboard = async () => {
     const { data, error } = await supabase
       .from('laporan')
-      .select('nama, foto_profil, upvotes');
+      .select('upvotes, profiles(id, nama, foto_profil)');
 
+
+        console.log('data:', JSON.stringify(data));
+        console.log('error:', error);
     if (error || !data) { setLoading(false); return; }
 
     const map = {};
-    data.forEach(({ nama, foto_profil, upvotes }) => {
-      if (!nama) return;
-      if (!map[nama]) map[nama] = { nama, foto_profil, totalUpvotes: 0 };
-      map[nama].totalUpvotes += upvotes || 0;
+    data.forEach(({ upvotes, profiles }) => {
+      if (!profiles?.id) return;
+      const key = profiles.id;
+      if (!map[key]) {
+        map[key] = {
+          id: profiles.id,
+          nama: profiles.nama,
+          foto_profil: profiles.foto_profil,
+          totalUpvotes: 0,
+        };
+      }
+      map[key].totalUpvotes += upvotes || 0;
     });
 
     const sorted = Object.values(map)
       .sort((a, b) => b.totalUpvotes - a.totalUpvotes)
       .slice(0, 50)
-      .map((item, index) => ({ ...item, rank: index + 1, id: String(index + 1) }));
+      .map((item, index) => ({ ...item, rank: index + 1 }));
 
     setLeaderboard(sorted);
     setLoading(false);
