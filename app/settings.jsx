@@ -48,7 +48,6 @@ export default function SettingsScreen() {
 
   const handleSimpan = async () => {
     setLoading(true);
-
     let fotoUrl = foto;
 
     if (foto && foto.startsWith('file://')) {
@@ -61,12 +60,16 @@ export default function SettingsScreen() {
         .from('avatars')
         .upload(fileName, formData);
 
-      if (!uploadError) {
-        const { data: urlData } = supabase.storage
-          .from('avatars')
-          .getPublicUrl(fileName);
-        fotoUrl = urlData.publicUrl;
+      if (uploadError) {
+        Alert.alert('Gagal', 'Upload foto gagal: ' + uploadError.message);
+        setLoading(false);
+        return; 
       }
+
+      const { data: urlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+      fotoUrl = urlData.publicUrl;
     }
 
     const updateData = { email, data: { nama, foto: fotoUrl } };
@@ -74,24 +77,24 @@ export default function SettingsScreen() {
 
     const { error: authError } = await supabase.auth.updateUser(updateData);
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (user) {
-    await supabase
-      .from('profiles')
-      .update({ nama, foto_profil: fotoUrl })
-      .eq('id', user.id);
-  }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase
+        .from('profiles')
+        .update({ nama, foto_profil: fotoUrl })
+        .eq('id', user.id);
+    }
 
-  setLoading(false);
+    setLoading(false);
 
-  if (authError) {
-    Alert.alert('Gagal', authError.message);
-  } else {
-    Alert.alert('Berhasil!', 'Profil berhasil diperbarui!');
-    setPassword('');
-    setFoto(fotoUrl);
-  }
-};
+    if (authError) {
+      Alert.alert('Gagal', authError.message);
+    } else {
+      Alert.alert('Berhasil!', 'Profil berhasil diperbarui!');
+      setPassword('');
+      setFoto(fotoUrl);
+    }
+  };
 
   const handleLogout = async () => {
     Alert.alert('Logout', 'Yakin ingin keluar?', [
