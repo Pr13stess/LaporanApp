@@ -64,10 +64,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   pill: {
+    width: '95%',
+    maxWidth: 360,
     flexDirection: 'row',
     backgroundColor: '#1a1a1a',
     borderRadius: 32,
-    height: 56,
+    height: 60,
     paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'space-between',
