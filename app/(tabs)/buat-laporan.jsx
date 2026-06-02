@@ -2,14 +2,23 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useCallback, useState, useRef } from 'react';
+import {
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  Animated,
+} from 'react-native';
 import { supabase } from '../../lib/supabase';
-import { Animated } from 'react-native';
-import { useRef } from 'react';
 
 export default function BuatLaporanScreen() {
   const router = useRouter();
+
   const [judul, setJudul] = useState('');
   const [tanggal] = useState(new Date().toISOString().split('T')[0]);
   const [detail, setDetail] = useState('');
@@ -18,12 +27,17 @@ export default function BuatLaporanScreen() {
   const [alamat, setAlamat] = useState('');
   const [loadingLokasi, setLoadingLokasi] = useState(false);
   const [sending, setSending] = useState(false);
-  const [toast, setToast] = useState({ visible: false, message: '', success: true });
+  const [toast, setToast] = useState({
+    visible: false,
+    message: '',
+    success: true,
+  });
 
   const toastAnim = useRef(new Animated.Value(-80)).current;
 
   const showToast = (message, success = true) => {
     setToast({ visible: true, message, success });
+
     Animated.sequence([
       Animated.spring(toastAnim, {
         toValue: 0,
@@ -36,7 +50,9 @@ export default function BuatLaporanScreen() {
         duration: 300,
         useNativeDriver: true,
       }),
-    ]).start(() => setToast(prev => ({ ...prev, visible: false })));
+    ]).start(() =>
+      setToast(prev => ({ ...prev, visible: false }))
+    );
   };
 
   useFocusEffect(
@@ -47,7 +63,10 @@ export default function BuatLaporanScreen() {
   );
 
   const fetchUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     if (user) {
       setFotoProfil(user.user_metadata?.foto || null);
     }
@@ -55,14 +74,22 @@ export default function BuatLaporanScreen() {
 
   const fetchLokasi = async () => {
     setLoadingLokasi(true);
-    const { status } = await Location.requestForegroundPermissionsAsync();
+
+    const { status } =
+      await Location.requestForegroundPermissionsAsync();
+
     if (status !== 'granted') {
-      Alert.alert('Izin Ditolak', 'Izin lokasi diperlukan untuk mengisi alamat otomatis.');
+      Alert.alert(
+        'Izin Ditolak',
+        'Izin lokasi diperlukan untuk mengisi alamat otomatis.'
+      );
       setLoadingLokasi(false);
       return;
     }
 
-    const location = await Location.getCurrentPositionAsync({});
+    const location =
+      await Location.getCurrentPositionAsync({});
+
     const geocode = await Location.reverseGeocodeAsync({
       latitude: location.coords.latitude,
       longitude: location.coords.longitude,
@@ -70,18 +97,24 @@ export default function BuatLaporanScreen() {
 
     if (geocode.length > 0) {
       const g = geocode[0];
-      const alamatLengkap = `${g.street || ''} ${g.district || ''}, ${g.city || ''}, ${g.region || ''}, ${g.country || ''}`.trim();
+
+      const alamatLengkap =
+        `${g.street || ''} ${g.district || ''}, ${g.city || ''}, ${g.region || ''}, ${g.country || ''}`.trim();
+
       setAlamat(alamatLengkap);
     }
+
     setLoadingLokasi(false);
   };
 
   const pilihFoto = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 1,
-    });
+    const result =
+      await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      });
+
     if (!result.canceled) {
       setFoto(result.assets[0].uri);
     }
@@ -92,26 +125,42 @@ export default function BuatLaporanScreen() {
       showToast('Semua field harus diisi!', false);
       return;
     }
+
     if (sending) return;
+
     setSending(true);
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     if (!user) {
-      showToast('Sesi habis, silakan login ulang', false);
+      showToast(
+        'Sesi habis, silakan login ulang',
+        false
+      );
       setSending(false);
       return;
     }
 
     let fotoUrl = null;
+
     if (foto) {
       const ext = foto.split('.').pop();
       const fileName = `${Date.now()}.${ext}`;
-      const formData = new FormData();
-      formData.append('file', { uri: foto, name: fileName, type: `image/${ext}` });
 
-      const { error: uploadError } = await supabase.storage
-        .from('laporan-foto')
-        .upload(fileName, formData);
+      const formData = new FormData();
+
+      formData.append('file', {
+        uri: foto,
+        name: fileName,
+        type: `image/${ext}`,
+      });
+
+      const { error: uploadError } =
+        await supabase.storage
+          .from('laporan-foto')
+          .upload(fileName, formData);
 
       if (uploadError) {
         showToast('Gagal upload foto', false);
@@ -119,121 +168,175 @@ export default function BuatLaporanScreen() {
         return;
       }
 
-      const { data: urlData } = supabase.storage
-        .from('laporan-foto')
-        .getPublicUrl(fileName);
+      const { data: urlData } =
+        supabase.storage
+          .from('laporan-foto')
+          .getPublicUrl(fileName);
+
       fotoUrl = urlData.publicUrl;
     }
 
-    const { error } = await supabase.from('laporan').insert({
-      judul,
-      tanggal,
-      deskripsi: detail,
-      user_id: user.id,
-      status: 'pending',
-      foto: fotoUrl,
-      alamat,
-    });
-    
-    console.log('insert error:', error);
+    const { error } = await supabase
+      .from('laporan')
+      .insert({
+        judul,
+        tanggal,
+        deskripsi: detail,
+        user_id: user.id,
+        status: 'pending',
+        foto: fotoUrl,
+        alamat,
+      });
 
     if (error) {
       showToast('Gagal mengirim laporan', false);
     } else {
-      showToast('Laporan berhasil dikirim!', true);
+      showToast(
+        'Laporan berhasil dikirim!',
+        true
+      );
       setTimeout(() => router.back(), 1500);
     }
+
     setSending(false);
   };
 
   return (
     <View style={styles.container}>
-      {/* Toast Notification */}
       {toast.visible && (
         <Animated.View
           style={[
             styles.toast,
             { transform: [{ translateY: toastAnim }] },
-            toast.success ? styles.toastSuccess : styles.toastError,
+            toast.success
+              ? styles.toastSuccess
+              : styles.toastError,
           ]}
         >
           <Ionicons
-            name={toast.success ? 'checkmark-circle' : 'close-circle'}
+            name={
+              toast.success
+                ? 'checkmark-circle'
+                : 'close-circle'
+            }
             size={20}
             color="#fff"
           />
-          <Text style={styles.toastText}>{toast.message}</Text>
+          <Text style={styles.toastText}>
+            {toast.message}
+          </Text>
         </Animated.View>
       )}
 
-      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.replace('/(tabs)/forum')}>
-          <Ionicons name="arrow-back" size={26} color="#fff" />
+        <TouchableOpacity
+           onPress={() => router.back()}
+        >
+          <Ionicons
+            name="arrow-back"
+            size={28}
+            color="#E8B54A"
+          />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Buat Laporan</Text>
+
+        <Text style={styles.headerTitle}>
+          Buat Laporan
+        </Text>
+
         {fotoProfil ? (
-          <Image source={{ uri: fotoProfil }} style={styles.avatar} />
+          <Image
+            source={{ uri: fotoProfil }}
+            style={styles.avatar}
+          />
         ) : (
           <View style={styles.avatar} />
         )}
       </View>
 
-      {/* Form */}
       <ScrollView contentContainerStyle={styles.form}>
-        <Text style={styles.formTitle}>Laporan Sekitar</Text>
+        <Text style={styles.formTitle}>
+          Laporan Sekitar
+        </Text>
+
+        <Text style={styles.label}>
+          Nama Laporan
+        </Text>
 
         <TextInput
           style={styles.input}
-          placeholder="Nama Laporan"
-          placeholderTextColor="#aaa"
+          placeholder="Nama laporan"
+          placeholderTextColor="#B5B5B5"
           value={judul}
           onChangeText={setJudul}
         />
 
+        <Text style={styles.label}>
+          Detail Laporan
+        </Text>
+
         <TextInput
           style={[styles.input, styles.inputMultiline]}
-          placeholder="Detail"
-          placeholderTextColor="#aaa"
+          placeholder="Deskripsikan masalah yang ada..."
+          placeholderTextColor="#B5B5B5"
           value={detail}
           onChangeText={setDetail}
           multiline
-          numberOfLines={4}
         />
 
-        {/* Lokasi */}
-        <View style={styles.lokasiBox}>
-          <Ionicons name="location-outline" size={18} color="#1565C0" />
-          <Text style={styles.lokasiText} numberOfLines={2}>
-            {loadingLokasi ? 'Mengambil lokasi...' : alamat || 'Lokasi tidak ditemukan'}
-          </Text>
-          <TouchableOpacity onPress={fetchLokasi}>
-            <Ionicons name="refresh-outline" size={18} color="#1565C0" />
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.label}>Lokasi</Text>
 
-        {/* Upload Foto */}
-        <TouchableOpacity style={styles.fotoBox} onPress={pilihFoto}>
+        <TextInput
+          style={styles.input}
+          editable={false}
+          value={
+            loadingLokasi
+              ? 'Mengambil lokasi...'
+              : alamat
+          }
+        />
+
+        <TouchableOpacity
+          style={styles.fotoBox}
+          onPress={pilihFoto}
+        >
           {foto ? (
-            <Image source={{ uri: foto }} style={styles.fotoPreview} />
+            <Image
+              source={{ uri: foto }}
+              style={styles.fotoPreview}
+            />
           ) : (
             <View style={styles.fotoPlaceholderBox}>
-              <Text style={styles.fotoPlaceholder}>Confirmation (might be letters or pictures)</Text>
-              <Ionicons name="image-outline" size={24} color="#aaa" />
+              <Ionicons
+                name="image-outline"
+                size={28}
+                color="#C5C5C5"
+              />
+              <Text style={styles.fotoPlaceholder}>
+                Upload Foto
+              </Text>
             </View>
           )}
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.btnKirim, sending && { opacity: 0.5 }]}
+          style={[
+            styles.btnKirim,
+            sending && { opacity: 0.6 },
+          ]}
           onPress={kirimLaporan}
           disabled={sending}
         >
-          <Ionicons name="send-outline" size={18} color="#fff" />
           <Text style={styles.btnKirimText}>
-            {sending ? 'Mengirim...' : 'Kirim Laporan'}
+            {sending
+              ? 'Mengirim...'
+              : 'Buat Laporan'}
           </Text>
         </TouchableOpacity>
+
+        <Text style={styles.tipText}>
+          Tips: Sertakan foto dan lokasi yang jelas
+          agar laporan lebih cepat diproses.
+        </Text>
       </ScrollView>
     </View>
   );
@@ -242,121 +345,121 @@ export default function BuatLaporanScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1565C0',
+    backgroundColor: '#F4F4F4',
   },
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 50,
-    paddingBottom: 12,
+    backgroundColor: '#1E1E1C',
+    paddingHorizontal: 18,
+    paddingTop: 55,
+    paddingBottom: 16,
+    borderBottomLeftRadius: 22,
+    borderBottomRightRadius: 22,
   },
-  avatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: '#90CAF9',
-    overflow: 'hidden',
-  },
+
   headerTitle: {
     color: '#fff',
-    fontWeight: 'bold',
     fontSize: 18,
+    fontWeight: '700',
   },
+
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#D9D9D9',
+    overflow: 'hidden',
+  },
+
   form: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    padding: 28,
-    minHeight: '100%',
+    paddingHorizontal: 30,
+    paddingTop: 12,
+    paddingBottom: 120,
   },
+
   formTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1565C0',
-    marginBottom: 24,
+    fontWeight: '700',
     textAlign: 'center',
+    color: '#2B2B2B',
+    marginBottom: 18,
   },
+
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 6,
+  },
+
   input: {
-    borderWidth: 1.5,
-    borderColor: '#ccc',
+    backgroundColor: '#FAFAFA',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
     borderRadius: 10,
-    padding: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     marginBottom: 14,
     fontSize: 14,
     color: '#333',
   },
+
   inputMultiline: {
-    height: 110,
+    height: 160,
     textAlignVertical: 'top',
   },
-  lokasiBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 14,
-    gap: 8,
-    backgroundColor: '#F0F4FF',
-  },
-  lokasiText: {
-    flex: 1,
-    fontSize: 13,
-    color: '#333',
-  },
+
   fotoBox: {
-    borderWidth: 1.5,
-    borderColor: '#ccc',
+    height: 100,
+    backgroundColor: '#FAFAFA',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
     borderRadius: 10,
-    height: 110,
-    marginBottom: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
     overflow: 'hidden',
+    marginBottom: 20,
   },
+
   fotoPlaceholderBox: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    padding: 12,
+    alignItems: 'center',
   },
+
   fotoPlaceholder: {
-    color: '#aaa',
-    fontSize: 13,
-    flex: 1,
+    marginTop: 6,
+    color: '#B5B5B5',
   },
+
   fotoPreview: {
     width: '100%',
     height: '100%',
   },
+
   btnKirim: {
-    backgroundColor: '#1565C0',
-    borderRadius: 20,
-    padding: 14,
-    alignItems: 'center',
-    flexDirection: 'row',
+    backgroundColor: '#E8B54A',
+    height: 52,
+    borderRadius: 12,
     justifyContent: 'center',
-    gap: 8,
-    marginTop: 4,
+    alignItems: 'center',
   },
+
   btnKirimText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: '#1A1A1A',
     fontSize: 16,
+    fontWeight: '700',
   },
-  input: {
-  borderWidth: 1.5,
-  borderColor: '#ccc',
-  borderRadius: 10,
-  padding: 12,
-  paddingLeft: 14,
-  marginBottom: 14,
-  fontSize: 14,
-  color: '#333',
-  backgroundColor: '#FAFAFA',
-},
+
+  tipText: {
+    marginTop: 14,
+    textAlign: 'center',
+    color: '#9A9A9A',
+    fontSize: 13,
+    lineHeight: 20,
+  },
+
   toast: {
     position: 'absolute',
     top: 52,
@@ -368,18 +471,17 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 12,
     elevation: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
     zIndex: 999,
   },
+
   toastSuccess: {
-    backgroundColor: '#1565C0',
+    backgroundColor: '#D9A441',
   },
+
   toastError: {
     backgroundColor: '#D32F2F',
   },
+
   toastText: {
     color: '#fff',
     fontSize: 13,
