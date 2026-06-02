@@ -15,7 +15,7 @@ export default function HomeScreen() {
     latitude: -6.1944,
     longitude: 106.7669,
   });
-  
+
   useFocusEffect(
     useCallback(() => {
       fetchUser();
@@ -52,7 +52,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Peta full screen */}
+      {/*Peta*/}
       <MapView
         style={styles.map}
         region={{
@@ -65,39 +65,40 @@ export default function HomeScreen() {
         <Marker coordinate={koordinat} title="Lokasi Kamu" />
       </MapView>
 
-      {/* Header overlay di atas map */}
+      {/*Header*/}
       <View style={styles.header}>
         {foto ? (
           <Image source={{ uri: foto }} style={styles.avatar} />
         ) : (
-          <View style={styles.avatar} />
+          <View style={styles.avatarPlaceholder}>
+            <Ionicons name="person" size={20} color="#aaa" />
+          </View>
         )}
         <View style={styles.headerText}>
           <Text style={styles.halo}>Halo, {nama}!</Text>
           <View style={styles.lokasiRow}>
-            <Ionicons name="location" size={12} color="#FFA500" />
-            <Text style={styles.lokasi} numberOfLines={1}>{alamat}</Text>
+            <Ionicons name="location" size={11} color="#FFA500" />
+            <Text style={styles.lokasiLabel}>Ping Location:</Text>
           </View>
+          <Text style={styles.lokasi} numberOfLines={1}>{alamat}</Text>
         </View>
         <TouchableOpacity style={styles.settingsBtn} onPress={() => router.push('/settings')}>
           <Ionicons name="settings-sharp" size={20} color="#FFA500" />
         </TouchableOpacity>
       </View>
 
-      {/* Bottom Bar */}
-      <View style={styles.bottomBar}>
-        <View style={styles.bottomContent}>
-          <Text style={styles.bottomLabel}>Menemukan Masalah?</Text>
-          <Text style={styles.bottomSub}>Laporkan kepada kami</Text>
+      {/* Laporan Button */}
+      <TouchableOpacity
+        style={styles.fabContainer}
+        onPress={() => router.push('/buat-laporan')}
+      >
+        <View style={styles.fabPill}>
+          <Text style={styles.fabText}>Buat laporan</Text>
         </View>
-        <TouchableOpacity
-          style={styles.btnLaporan}
-          onPress={() => router.push('/buat-laporan')}
-        >
-          <Ionicons name="add-circle-outline" size={18} color="#fff" />
-          <Text style={styles.btnLaporanText}>Buat Laporan</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.fabIcon}>
+          <Ionicons name="add" size={26} color="#fff" />
+        </View>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -119,21 +120,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 52,
-    paddingBottom: 16,
-    gap: 12,
-    backgroundColor: 'rgba(21, 101, 192, 0.92)',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    paddingTop: 48,
+    paddingBottom: 14,
+    gap: 10,
+    backgroundColor: 'rgba(20, 20, 20, 0.88)',
+    borderBottomLeftRadius: 18,
+    borderBottomRightRadius: 18,
   },
   avatar: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: '#90CAF9',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#555',
     overflow: 'hidden',
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: '#fff',
+  },
+  avatarPlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#333',
+    borderWidth: 1.5,
+    borderColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerText: {
     flex: 1,
@@ -141,67 +152,69 @@ const styles = StyleSheet.create({
   halo: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 17,
-    marginBottom: 2,
+    fontSize: 16,
+    marginBottom: 1,
   },
   lokasiRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
+    marginTop: 2,
+  },
+  lokasiLabel: {
+    color: '#FFA500',
+    fontSize: 11,
+    fontWeight: '600',
   },
   lokasi: {
-    color: '#E3F2FD',
+    color: '#ccc',
     fontSize: 11,
-    flex: 1,
+    marginTop: 1,
   },
   settingsBtn: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(255,255,255,0.12)',
     padding: 8,
     borderRadius: 12,
   },
 
-  // Bottom bar
-  bottomBar: {
+  // Floating Action Button
+  fabContainer: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    bottom: 32,
+    right: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    paddingBottom: 28,
-    backgroundColor: 'rgba(21, 101, 192, 0.95)',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    },
+  fabText: {
+    color: '#111',
+    fontWeight: '600',
+    fontSize: 13,
   },
-  bottomContent: {
-    flex: 1,
-  },
-  bottomLabel: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 15,
-  },
-  bottomSub: {
-    color: '#90CAF9',
-    fontSize: 11,
-    marginTop: 2,
-  },
-  btnLaporan: {
-    backgroundColor: '#FFA500',
-    flexDirection: 'row',
+  fabIcon: {
+    backgroundColor: '#1a1a1a',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 20,
-    elevation: 3,
+    justifyContent: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    zIndex: 1,
   },
-  btnLaporanText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
+  fabPill: {
+  backgroundColor: '#fff',
+  paddingHorizontal: 16,
+  paddingVertical: 10,
+  borderRadius: 20,
+  marginRight: -20, 
+  paddingRight: 28,  
+  elevation: 3,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.15,
+  shadowRadius: 3,
   },
 });
