@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
   cardNama: {
     fontWeight: 'bold',
     fontSize: 13,
-    color: '#1565C0',
+    color: '#e49400',
   },
   cardTanggal: {
     fontSize: 11,
