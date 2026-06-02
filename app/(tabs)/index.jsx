@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   // Floating Action Button
   fabContainer: {
     position: 'absolute',
-    bottom: 32,
+    bottom: 100,
     right: 16,
     flexDirection: 'row',
     alignItems: 'center',
