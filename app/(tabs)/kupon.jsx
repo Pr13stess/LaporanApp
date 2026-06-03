@@ -283,7 +283,7 @@ export default function VoucherScreen() {
             )}
             <View>
               <Text style={styles.headerNama}>Halo, {nama}!</Text>
-              <Text style={styles.headerSub}>Poin</Text>
+              {/* <Text style={styles.headerSub}>Poin</Text> */}
             </View>
           </View>
           <TouchableOpacity onPress={() => router.push('/settings')} style={styles.settingsBtn}>
@@ -441,7 +441,7 @@ const styles = StyleSheet.create({
   headerNama: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 15,
+    fontSize: 17,
   },
   headerSub: {
     color: '#888',
