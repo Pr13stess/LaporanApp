@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
   headerBackBtn: {
     width: 36,
     height: 36,
-    borderRadius: 10,
+    borderRadius: 18,
     backgroundColor: '#2a2a2a',
     alignItems: 'center',
     justifyContent: 'center',
