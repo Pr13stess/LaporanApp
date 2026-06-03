@@ -133,8 +133,11 @@ export default function ForumScreen() {
           </View>
         )}
         <Text style={styles.headerTitle}>Halo, {nama}!</Text>
-        <TouchableOpacity onPress={() => router.push('/settings')}>
-          <Ionicons name="settings-sharp" size={22} color="#FFA500" />
+        <TouchableOpacity
+          onPress={() => router.push('/settings')}
+          style={styles.settingsBtn}
+        >
+          <Ionicons name="settings-sharp" size={18} color="#e49400" />
         </TouchableOpacity>
       </View>
 
@@ -306,6 +309,14 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 17,
+  },
+  settingsBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#2a2a2a',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   // Content
