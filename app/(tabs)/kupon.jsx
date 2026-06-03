@@ -344,7 +344,7 @@ export default function VoucherScreen() {
           {/* Voucher Section */}
           <TouchableOpacity
             style={styles.voucherBtn}
-            onPress={() => router.push('/voucher-list')}
+            onPress={() => router.push('/kupon-list')}
             activeOpacity={0.85}
           >
             <Ionicons name="gift-outline" size={20} color="#fff" />
