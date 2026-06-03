@@ -29,6 +29,13 @@ export default function BuatLaporanScreen() {
   const [sending, setSending] = useState(false);
   const [toast, setToast] = useState({ visible: false, message: '', success: true });
 
+  const resetForm = () => {
+  setJudul('');
+  setDetail('');
+  setFoto(null);
+  setAlamat('');
+  };
+  
   const toastAnim = useRef(new Animated.Value(-80)).current;
 
   const showToast = (message, success = true) => {
@@ -131,7 +138,8 @@ export default function BuatLaporanScreen() {
       showToast('Gagal mengirim laporan', false);
     } else {
       showToast('Laporan berhasil dikirim!', true);
-      setTimeout(() => router.back(), 1500);
+      resetForm();
+      setTimeout(() => router.back(), 1000);
     }
 
     setSending(false);
