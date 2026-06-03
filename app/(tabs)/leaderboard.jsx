@@ -154,8 +154,8 @@ export default function LeaderboardScreen() {
 
   const Avatar = ({ uri, size = 44, borderColor = '#E0E0E0' }) => (
     uri
-      ? <Image source={{ uri }} style={{ width: size, height: size, borderRadius: size / 2, borderWidth: 2.5, borderColor, overflow: 'hidden', backgroundColor: '#eee' }} />
-      : <View style={{ width: size, height: size, borderRadius: size / 2, borderWidth: 2.5, borderColor, backgroundColor: '#F0F0F0', alignItems: 'center', justifyContent: 'center' }}>
+      ? <Image source={{ uri }} style={{ width: size, height: size, borderRadius: size / 2, borderWidth: 1.5, borderColor, overflow: 'hidden', backgroundColor: '#eee' }} />
+      : <View style={{ width: size, height: size, borderRadius: size / 2, borderWidth: 1.5, borderColor, backgroundColor: '#F0F0F0', alignItems: 'center', justifyContent: 'center' }}>
           <Ionicons name="person" size={size * 0.4} color="#bbb" />
         </View>
   );
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 10,
   },
   headerTitle: {
-    color: '#fff', fontWeight: 'bold', fontSize: 15,
+    color: '#fff', fontWeight: 'bold', fontSize: 17,
   },
   settingsBtn: {
     width: 36, height: 36, borderRadius: 10,
