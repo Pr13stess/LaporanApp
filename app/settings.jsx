@@ -81,6 +81,12 @@ export default function SettingsScreen() {
         .from('avatars')
         .getPublicUrl(fileName);
       fotoUrl = urlData.publicUrl;
+      
+      if (!fotoUrl || fotoUrl.includes('file://')) {
+        Alert.alert('Gagal', 'URL foto tidak valid');
+        setLoading(false);
+        return;
+      }
     }
 
     const updateData = { email, data: { nama, foto: fotoUrl } };
@@ -88,15 +94,16 @@ export default function SettingsScreen() {
 
     const { error: authError } = await supabase.auth.updateUser(updateData);
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (user) {
-      await supabase
-        .from('profiles')
-        .update({ nama, foto_profil: fotoUrl })
-        .eq('id', user.id);
-    }
+     const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase
+          .from('profiles')
+          .upsert({
+            id: user.id,
+            nama,
+            foto_profil: fotoUrl,
+          }, { onConflict: 'id' });
+      }
 
     setLoading(false);
 

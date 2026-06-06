@@ -50,14 +50,19 @@ export default function DetailForumScreen() {
   }, [id]);
 
   const fetchUser = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       setNama(user.user_metadata?.nama || 'User');
-      setFoto(user.user_metadata?.foto || null);
       setUserId(user.id);
-      return user.id;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('foto_profil')
+        .eq('id', user.id)
+        .single();
+      
+      setFoto(profile?.foto_profil || null);
+      return user.id; 
     }
     return null;
   };
