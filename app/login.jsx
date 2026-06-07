@@ -30,20 +30,23 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="light-content" backgroundColor="#1a1a1a" />
 
-      <View style={styles.hero}>
-        <View style={styles.circle1} />
-        <View style={styles.circle2} />
-        <View style={styles.iconRing}>
-          <Ionicons name="location" size={32} color="#fff" />
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.logoRow}>
+          <View style={styles.logoIcon}>
+            <Ionicons name="megaphone" size={20} color="#1a1a1a" />
+          </View>
+          <Text style={styles.logoText}>MariLapor!</Text>
         </View>
-        <Text style={styles.appName}>LaporanApp</Text>
-        <Text style={styles.appSub}>Infrastruktur Kita, Tanggung Jawab Kita</Text>
+        <Text style={styles.headerTitle}>Selamat Datang!</Text>
+        <Text style={styles.headerSub}>Infrastruktur Kita, Tanggung Jawab Kita</Text>
       </View>
 
+      {/* Card */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Selamat datang!</Text>
+        <Text style={styles.cardTitle}>Masuk</Text>
         <Text style={styles.cardSub}>Masuk untuk mulai melaporkan</Text>
 
         <View style={styles.tagRow}>
@@ -57,11 +60,11 @@ export default function LoginScreen() {
 
         <Text style={styles.label}>EMAIL</Text>
         <View style={styles.fieldBox}>
-          <Ionicons name="mail-outline" size={18} color="#1565C0" style={styles.fieldIcon} />
+          <Ionicons name="mail-outline" size={18} color="#FFA500" style={styles.fieldIcon} />
           <TextInput
             style={styles.fieldInput}
             placeholder="email@contoh.com"
-            placeholderTextColor="#aaa"
+            placeholderTextColor="#bbb"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -71,17 +74,21 @@ export default function LoginScreen() {
 
         <Text style={styles.label}>PASSWORD</Text>
         <View style={styles.fieldBox}>
-          <Ionicons name="lock-closed-outline" size={18} color="#1565C0" style={styles.fieldIcon} />
+          <Ionicons name="lock-closed-outline" size={18} color="#FFA500" style={styles.fieldIcon} />
           <TextInput
             style={[styles.fieldInput, { flex: 1 }]}
             placeholder="••••••••"
-            placeholderTextColor="#aaa"
+            placeholderTextColor="#bbb"
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
           />
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="#aaa" />
+            <Ionicons
+              name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+              size={20}
+              color="#ccc"
+            />
           </TouchableOpacity>
         </View>
 
@@ -90,7 +97,7 @@ export default function LoginScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.btnLogin, loading && { opacity: 0.7 }]}
+          style={[styles.btnLogin, loading && { opacity: 0.6 }]}
           onPress={handleLogin}
           disabled={loading}
         >
@@ -105,7 +112,8 @@ export default function LoginScreen() {
 
         <TouchableOpacity onPress={() => router.push('/register')} style={styles.registerRow}>
           <Text style={styles.registerText}>
-            Belum punya akun? <Text style={styles.registerBold}>Daftar sekarang</Text>
+            Belum punya akun?{' '}
+            <Text style={styles.registerBold}>Daftar sekarang</Text>
           </Text>
         </TouchableOpacity>
       </View>
@@ -114,68 +122,182 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1565C0' },
+  container: {
+    flex: 1,
+    backgroundColor: '#1a1a1a',
+  },
 
-  hero: {
-    paddingHorizontal: 28, paddingTop: 56, paddingBottom: 48, overflow: 'hidden',
+  /* ── Header ── */
+  header: {
+    paddingHorizontal: 24,
+    paddingTop: 60,
+    paddingBottom: 32,
   },
-  circle1: {
-    position: 'absolute', width: 200, height: 200, borderRadius: 100,
-    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.12)', top: -50, right: -50,
+  logoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 24,
   },
-  circle2: {
-    position: 'absolute', width: 110, height: 110, borderRadius: 55,
-    backgroundColor: 'rgba(255,255,255,0.06)', bottom: -20, left: -20,
+  logoIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#FFA500',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  iconRing: {
-    width: 64, height: 64, borderRadius: 32,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    alignItems: 'center', justifyContent: 'center', marginBottom: 14,
+  logoText: {
+    color: '#FFA500',
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
-  appName: { color: '#fff', fontSize: 24, fontWeight: '700', letterSpacing: 0.4, marginBottom: 6 },
-  appSub: { color: 'rgba(255,255,255,0.6)', fontSize: 12, letterSpacing: 0.5, textTransform: 'uppercase' },
+  headerTitle: {
+    color: '#ffffff',
+    fontSize: 26,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+    marginBottom: 6,
+  },
+  headerSub: {
+    color: '#888',
+    fontSize: 13,
+    lineHeight: 18,
+  },
 
+  /* ── Card ── */
   card: {
-    flex: 1, backgroundColor: '#fff',
-    borderTopLeftRadius: 28, borderTopRightRadius: 28,
-    paddingHorizontal: 24, paddingTop: 28, paddingBottom: 32,
+    flex: 1,
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: 24,
+    paddingTop: 28,
+    paddingBottom: 32,
   },
-  cardTitle: { fontSize: 22, fontWeight: '700', color: '#1565C0', marginBottom: 4 },
-  cardSub: { fontSize: 13, color: '#888', marginBottom: 20 },
+  cardTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 4,
+  },
+  cardSub: {
+    fontSize: 13,
+    color: '#999',
+    marginBottom: 16,
+  },
 
-  tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 22 },
+  /* ── Tags ── */
+  tagRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 20,
+  },
   tag: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: '#EAF4FB', borderRadius: 20,
-    paddingVertical: 5, paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#fff7ed',
+    borderRadius: 20,
+    paddingVertical: 5,
+    paddingHorizontal: 12,
   },
-  tagDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#FFA500' },
-  tagText: { fontSize: 11, fontWeight: '600', color: '#1565C0' },
+  tagDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#FFA500',
+  },
+  tagText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#cc7700',
+  },
 
-  label: { fontSize: 11, fontWeight: '600', color: '#555', letterSpacing: 0.6, marginBottom: 6 },
+  /* ── Fields ── */
+  label: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#aaa',
+    letterSpacing: 0.8,
+    marginBottom: 8,
+  },
   fieldBox: {
-    flexDirection: 'row', alignItems: 'center',
-    borderWidth: 1.5, borderColor: '#C9E5F5',
-    borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11,
-    backgroundColor: '#F4FAFD', marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#f0f0f0',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    backgroundColor: '#fafafa',
+    marginBottom: 14,
   },
-  fieldIcon: { marginRight: 10 },
-  fieldInput: { flex: 1, fontSize: 14, color: '#333' },
+  fieldIcon: {
+    marginRight: 10,
+  },
+  fieldInput: {
+    flex: 1,
+    fontSize: 14,
+    color: '#1a1a1a',
+  },
 
-  forgotWrap: { alignItems: 'flex-end', marginTop: -6, marginBottom: 20 },
-  forgotText: { fontSize: 12, color: '#1565C0', fontWeight: '500' },
+  /* ── Forgot ── */
+  forgotWrap: {
+    alignItems: 'flex-end',
+    marginTop: -4,
+    marginBottom: 18,
+  },
+  forgotText: {
+    fontSize: 12,
+    color: '#FFA500',
+    fontWeight: '600',
+  },
 
+  /* ── Button ── */
   btnLogin: {
-    backgroundColor: '#FFA500', borderRadius: 20,
-    paddingVertical: 14, alignItems: 'center', marginBottom: 18,
+    backgroundColor: '#FFA500',
+    borderRadius: 14,
+    paddingVertical: 15,
+    alignItems: 'center',
+    marginBottom: 20,
   },
-  btnLoginText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  btnLoginText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 16,
+    letterSpacing: 0.3,
+  },
 
-  divider: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: '#EEE' },
-  dividerText: { fontSize: 12, color: '#BBB' },
+  /* ── Divider ── */
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 18,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#eee',
+  },
+  dividerText: {
+    fontSize: 12,
+    color: '#ccc',
+  },
 
-  registerRow: { alignItems: 'center' },
-  registerText: { fontSize: 13, color: '#888' },
-  registerBold: { color: '#1565C0', fontWeight: '700' },
+  /* ── Register link ── */
+  registerRow: {
+    alignItems: 'center',
+  },
+  registerText: {
+    fontSize: 13,
+    color: '#aaa',
+  },
+  registerBold: {
+    color: '#FFA500',
+    fontWeight: '700',
+  },
 });
